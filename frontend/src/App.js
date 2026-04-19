@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import BookingPage from './BookingPage';
+import DashboardPage from './DashboardPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -13,6 +14,7 @@ function App() {
         </div>
         <div className="nav-links">
           <a href="#home" onClick={() => setCurrentPage('home')}>Home</a>
+          <a href="#dashboard" onClick={() => setCurrentPage('dashboard')}>Dashboard</a>
           <a href="#bookings" onClick={() => setCurrentPage('bookings')}>Bookings</a>
           <a href="#resources">Resources</a>
           <a href="#login" className="btn-login">Login</a>
@@ -23,18 +25,24 @@ function App() {
         <>
           <section className="hero">
             <div className="hero-content">
-              <h1>Smart Campus Operations Hub</h1>
+              <h1>Smart Campus <span>Operations Hub</span></h1>
               <p>Book rooms, labs, and equipment easily. Manage your campus resources in one place.</p>
               <div className="hero-buttons">
                 <button className="btn-primary"
                   onClick={() => setCurrentPage('bookings')}>Make a Booking</button>
-                <button className="btn-secondary">View Resources</button>
+                <button className="btn-secondary"
+                  onClick={() => setCurrentPage('dashboard')}>View Dashboard</button>
               </div>
             </div>
           </section>
 
+          <div className="banner">
+            🎓 SLIIT Smart Campus Operations Hub — Manage Resources Efficiently
+          </div>
+
           <section className="features">
             <h2>What You Can Do</h2>
+            <p className="subtitle">Everything you need to manage campus resources in one place</p>
             <div className="feature-cards">
               <div className="card">
                 <div className="card-icon">📅</div>
@@ -52,9 +60,36 @@ function App() {
                 <p>Our system automatically prevents double bookings for the same resource.</p>
               </div>
               <div className="card">
-                <div className="card-icon">👤</div>
-                <h3>Role Based Access</h3>
-                <p>Students book resources while admins manage and approve requests.</p>
+                <div className="card-icon">📊</div>
+                <h3>Analytics Dashboard</h3>
+                <p>View booking statistics, charts and most popular resources at a glance.</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="how-it-works">
+            <h2>How It Works</h2>
+            <p className="subtitle">Simple 4 step process to book your resource</p>
+            <div className="steps">
+              <div className="step">
+                <div className="step-number">1</div>
+                <h3>Choose Resource</h3>
+                <p>Select the room, lab or equipment you need</p>
+              </div>
+              <div className="step">
+                <div className="step-number">2</div>
+                <h3>Pick Date & Time</h3>
+                <p>Select your preferred date and time slot</p>
+              </div>
+              <div className="step">
+                <div className="step-number">3</div>
+                <h3>Submit Request</h3>
+                <p>Submit your booking request with purpose</p>
+              </div>
+              <div className="step">
+                <div className="step-number">4</div>
+                <h3>Get Approved</h3>
+                <p>Admin reviews and approves your booking</p>
               </div>
             </div>
           </section>
@@ -75,11 +110,12 @@ function App() {
           </section>
 
           <footer className="footer">
-            <p>© 2026 Smart Campus Operations Hub — SLIIT</p>
+            <p>© 2026 <span>Smart Campus Operations Hub</span> — SLIIT Faculty of Computing</p>
           </footer>
         </>
       )}
 
+      {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
     </div>
   );
