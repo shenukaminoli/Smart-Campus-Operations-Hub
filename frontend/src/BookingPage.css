@@ -1,39 +1,49 @@
 .booking-page {
-  padding: 40px;
-  background-color: #f8f9fa;
+  padding: 40px 60px;
+  background-color: #f4f7fc;
   min-height: 100vh;
 }
 
 .booking-page h1 {
   font-size: 32px;
-  color: #1a1a2e;
-  margin-bottom: 24px;
+  color: #003366;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+
+.booking-page .page-subtitle {
+  color: #666;
+  font-size: 15px;
+  margin-bottom: 32px;
 }
 
 /* MESSAGE */
 .message {
-  padding: 12px 20px;
-  background-color: #fff3cd;
-  border-left: 4px solid #e94560;
+  padding: 14px 20px;
+  background-color: #fff8e1;
+  border-left: 4px solid #FFB800;
   border-radius: 8px;
   margin-bottom: 24px;
   font-size: 15px;
-  color: #1a1a2e;
+  color: #003366;
+  font-weight: 500;
 }
 
 /* FORM */
 .booking-form-container {
   background: white;
   border-radius: 16px;
-  padding: 32px;
+  padding: 36px;
   margin-bottom: 40px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0,51,102,0.08);
+  border-top: 4px solid #FFB800;
 }
 
 .booking-form-container h2 {
   font-size: 22px;
-  color: #1a1a2e;
+  color: #003366;
   margin-bottom: 24px;
+  font-weight: 700;
 }
 
 .form-row {
@@ -45,45 +55,57 @@
 .form-row input {
   flex: 1;
   padding: 12px 16px;
-  border: 1px solid #ddd;
+  border: 1.5px solid #dde3ed;
   border-radius: 8px;
   font-size: 14px;
   outline: none;
   transition: border 0.3s;
+  color: #003366;
+  background-color: #f9fbff;
 }
 
 .form-row input:focus {
-  border-color: #e94560;
+  border-color: #003366;
+  background-color: #fff;
+}
+
+.form-row input::placeholder {
+  color: #aab4c4;
 }
 
 .btn-submit {
-  background-color: #e94560;
-  color: white;
+  background-color: #003366;
+  color: #FFB800;
   border: none;
-  padding: 14px 32px;
+  padding: 14px 36px;
   border-radius: 30px;
   font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 8px;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(0,51,102,0.3);
 }
 
 .btn-submit:hover {
   transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0,51,102,0.4);
 }
 
 /* TABLE */
 .bookings-table-container {
   background: white;
   border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 36px;
+  box-shadow: 0 4px 20px rgba(0,51,102,0.08);
+  border-top: 4px solid #003366;
 }
 
 .bookings-table-container h2 {
   font-size: 22px;
-  color: #1a1a2e;
+  color: #003366;
   margin-bottom: 24px;
+  font-weight: 700;
 }
 
 .bookings-table {
@@ -93,103 +115,128 @@
 }
 
 .bookings-table th {
-  background-color: #1a1a2e;
-  color: white;
-  padding: 12px 16px;
+  background-color: #003366;
+  color: #FFB800;
+  padding: 14px 16px;
   text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.bookings-table th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.bookings-table th:last-child {
+  border-radius: 0 8px 0 0;
 }
 
 .bookings-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef1f7;
   color: #444;
 }
 
 .bookings-table tr:hover {
-  background-color: #f8f9fa;
+  background-color: #f4f7fc;
 }
 
 .no-bookings {
   color: #888;
   font-size: 15px;
+  text-align: center;
+  padding: 40px;
 }
 
 /* STATUS BADGES */
 .status-badge {
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .status-pending {
-  background-color: #fff3cd;
-  color: #856404;
+  background-color: #fff8e1;
+  color: #b8860b;
+  border: 1px solid #FFB800;
 }
 
 .status-approved {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #4caf50;
 }
 
 .status-rejected {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: #fdecea;
+  color: #b71c1c;
+  border: 1px solid #ef5350;
 }
 
 .status-cancelled {
-  background-color: #e2e3e5;
-  color: #383d41;
+  background-color: #eceff1;
+  color: #455a64;
+  border: 1px solid #90a4ae;
 }
 
 /* ACTION BUTTONS */
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .btn-approve {
-  background-color: #28a745;
-  color: white;
+  background-color: #003366;
+  color: #FFB800;
   border: none;
   padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s;
 }
 
 .btn-reject {
-  background-color: #dc3545;
+  background-color: #c0392b;
   color: white;
   border: none;
   padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s;
 }
 
 .btn-cancel {
-  background-color: #fd7e14;
-  color: white;
+  background-color: #FFB800;
+  color: #003366;
   border: none;
   padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s;
 }
 
 .btn-delete {
-  background-color: #6c757d;
+  background-color: #78909c;
   color: white;
   border: none;
   padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s;
 }
 
-.btn-approve:hover { background-color: #218838; }
-.btn-reject:hover { background-color: #c82333; }
-.btn-cancel:hover { background-color: #e8690a; }
-.btn-delete:hover { background-color: #5a6268; }
+.btn-approve:hover { background-color: #002244; }
+.btn-reject:hover { background-color: #a93226; }
+.btn-cancel:hover { background-color: #e6a500; }
+.btn-delete:hover { background-color: #607d8b; }
