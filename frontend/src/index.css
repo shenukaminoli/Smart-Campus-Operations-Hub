@@ -11,3 +11,54 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Fix react-big-calendar toolbar buttons */
+.rbc-toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 16px !important;
+  position: relative !important;
+  z-index: 999 !important;
+}
+
+.rbc-btn-group {
+  display: flex !important;
+  gap: 4px !important;
+}
+
+.rbc-toolbar button {
+  display: inline-block !important;
+  pointer-events: all !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 999 !important;
+  background: white !important;
+  color: #003366 !important;
+  border: 1.5px solid #003366 !important;
+  border-radius: 6px !important;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
+}
+
+.rbc-toolbar button:hover {
+  background-color: #003366 !important;
+  color: #FFB800 !important;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: #003366 !important;
+  color: #FFB800 !important;
+}
+
+.rbc-toolbar-label {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #003366 !important;
+  flex: 1 !important;
+  text-align: center !important;
+}

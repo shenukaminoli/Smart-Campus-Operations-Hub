@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import BookingPage from './BookingPage';
 import DashboardPage from './DashboardPage';
+import CalendarPage from './CalendarPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -16,6 +17,7 @@ function App() {
           <a href="#home" onClick={() => setCurrentPage('home')}>Home</a>
           <a href="#dashboard" onClick={() => setCurrentPage('dashboard')}>Dashboard</a>
           <a href="#bookings" onClick={() => setCurrentPage('bookings')}>Bookings</a>
+          <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
           <a href="#resources">Resources</a>
           <a href="#login" className="btn-login">Login</a>
         </div>
@@ -117,6 +119,7 @@ function App() {
 
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
+      {currentPage === 'calendar' && <CalendarPage />}
     </div>
   );
 }
