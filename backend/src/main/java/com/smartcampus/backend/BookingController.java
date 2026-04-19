@@ -8,7 +8,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,31 +41,77 @@ public class BookingController {
 
     // GET - Admin gets all bookings
     @GetMapping
-    public ResponseEntity<List<Booking>> getAllBookings() {
-        return ResponseEntity.ok(bookingService.getAllBookings());
+    public ResponseEntity<?> getAllBookings() {
+        try {
+            return ResponseEntity.ok(bookingService.getAllBookings());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Unable to fetch bookings. Database is currently unavailable."));
+        }
     }
 
     // GET - User gets their own bookings
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Booking>> getBookingsByUser(@PathVariable String userId) {
-        return ResponseEntity.ok(bookingService.getBookingsByUser(userId));
+    public ResponseEntity<?> getBookingsByUser(@PathVariable String userId) {
+        try {
+            return ResponseEntity.ok(bookingService.getBookingsByUser(userId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Unable to fetch user bookings. Database is currently unavailable."));
+        }
     }
 
     // GET - Filter bookings by status
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Booking>> getBookingsByStatus(@PathVariable String status) {
-        return ResponseEntity.ok(bookingService.getBookingsByStatus(status));
+    public ResponseEntity<?> getBookingsByStatus(@PathVariable String status) {
+        try {
+            return ResponseEntity.ok(bookingService.getBookingsByStatus(status));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Unable to fetch bookings by status. Database is currently unavailable."));
+        }
     }
 
     // GET - Get single booking by ID
     @GetMapping("/{id}")
     public ResponseEntity<?> getBookingById(@PathVariable String id) {
-        Optional<Booking> booking = bookingService.getBookingById(id);
-        if (booking.isPresent()) {
-            return ResponseEntity.ok(booking.get());
+        try {
+            Optional<Booking> booking = bookingService.getBookingById(id);
+            if (booking.isPresent()) {
+                return ResponseEntity.ok(booking.get());
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Booking not found"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Unable to fetch booking. Database is currently unavailable."));
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("error", "Booking not found"));
+    }
+
+    // PUT - Update an existing booking
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateBooking(@PathVariable String id,
+                                           @Valid @RequestBody Booking updatedBooking,
+                                           BindingResult result) {
+        if (result.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            result.getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        }
+
+        try {
+            Booking updated = bookingService.updateBooking(id, updatedBooking);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("CONFLICT")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
+        }
     }
 
     // PUT - Admin approves booking

@@ -8,6 +8,7 @@ function BookingPage() {
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [toast, setToast] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,11 +38,14 @@ function BookingPage() {
 
   const fetchBookings = async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const res = await axios.get(API);
       setBookings(res.data);
     } catch (err) {
-      showToast('Error fetching bookings', 'error');
+      const message = err?.response?.data?.error || 'Error fetching bookings';
+      setLoadError(message);
+      showToast(message, 'error');
     }
     setLoading(false);
   };
@@ -355,6 +359,12 @@ function BookingPage() {
           <div className="loading">
             <div className="spinner"></div>
             <p>Loading bookings...</p>
+          </div>
+        ) : loadError ? (
+          <div className="empty-state">
+            <div className="empty-icon">⚠️</div>
+            <h3>Unable to load bookings</h3>
+            <p>{loadError}</p>
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="empty-state">
