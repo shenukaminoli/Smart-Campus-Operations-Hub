@@ -13,6 +13,7 @@ function BookingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [myUserId, setMyUserId] = useState('');
   const [viewMode, setViewMode] = useState('all');
+  const [editingBooking, setEditingBooking] = useState(null);
   const [stats, setStats] = useState({
     total: 0, pending: 0, approved: 0, rejected: 0, cancelled: 0
   });
@@ -77,12 +78,16 @@ function BookingPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleEditChange = (e) => {
+    setEditingBooking({ ...editingBooking, [e.target.name]: e.target.value });
+  };
+
   const validateForm = () => {
     if (form.startTime >= form.endTime) {
       showToast('End time must be after start time!', 'error');
       return false;
     }
-    if (new Date(form.date) < new Date().setHours(0,0,0,0)) {
+    if (new Date(form.date) < new Date().setHours(0, 0, 0, 0)) {
       showToast('Date cannot be in the past!', 'error');
       return false;
     }
@@ -151,6 +156,57 @@ function BookingPage() {
     } catch (err) {
       showToast('Cannot delete this booking.', 'error');
     }
+  };
+
+  // Edit booking
+  const handleEditClick = (booking) => {
+    if (booking.status !== 'PENDING') {
+      showToast('Only PENDING bookings can be edited!', 'error');
+      return;
+    }
+    setEditingBooking({ ...booking });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (editingBooking.startTime >= editingBooking.endTime) {
+      showToast('End time must be after start time!', 'error');
+      return;
+    }
+    try {
+      await axios.put(`${API}/${editingBooking.id}`, editingBooking);
+      showToast('Booking updated successfully!', 'success');
+      setEditingBooking(null);
+      fetchBookings();
+    } catch (err) {
+      if (err.response && err.response.status === 409) {
+        showToast('Conflict! This resource is already booked for this time.', 'error');
+      } else {
+        showToast('Error updating booking.', 'error');
+      }
+    }
+  };
+
+  // Export to CSV
+  const exportToCSV = () => {
+    const headers = ['Resource', 'User', 'Date', 'Start Time',
+      'End Time', 'Purpose', 'Attendees', 'Status', 'Rejection Reason'];
+    const rows = filteredBookings.map(b => [
+      b.resourceName, b.userId, b.date, b.startTime,
+      b.endTime, b.purpose, b.attendees, b.status,
+      b.rejectionReason || ''
+    ]);
+    const csvContent = [headers, ...rows]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bookings.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Bookings exported successfully!', 'success');
   };
 
   const getStatusClass = (status) => {
@@ -292,6 +348,7 @@ function BookingPage() {
       <div className="bookings-table-container">
         <h2>📋 {viewMode === 'mine' ? 'My Bookings' : 'All Bookings'}
           <span className="booking-count">{filteredBookings.length} records</span>
+          <button className="btn-export" onClick={exportToCSV}>⬇ Export CSV</button>
         </h2>
 
         {loading ? (
@@ -344,6 +401,8 @@ function BookingPage() {
                           onClick={() => handleApprove(booking.id)}>Approve</button>
                         <button className="btn-reject"
                           onClick={() => handleReject(booking.id)}>Reject</button>
+                        <button className="btn-edit"
+                          onClick={() => handleEditClick(booking)}>Edit</button>
                       </>
                     )}
                     {booking.status === 'APPROVED' && (
@@ -359,6 +418,65 @@ function BookingPage() {
           </table>
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editingBooking && (
+        <div className="modal-overlay" onClick={() => setEditingBooking(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>✏️ Edit Booking</h2>
+              <button className="modal-close"
+                onClick={() => setEditingBooking(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleEditSubmit}>
+                <div className="edit-form-row">
+                  <label>Resource ID</label>
+                  <input name="resourceId" value={editingBooking.resourceId}
+                    onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Resource Name</label>
+                  <input name="resourceName" value={editingBooking.resourceName}
+                    onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Date</label>
+                  <input name="date" type="date" value={editingBooking.date}
+                    onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Start Time</label>
+                  <input name="startTime" type="time"
+                    value={editingBooking.startTime}
+                    onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>End Time</label>
+                  <input name="endTime" type="time"
+                    value={editingBooking.endTime}
+                    onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Purpose</label>
+                  <input name="purpose" value={editingBooking.purpose}
+                    onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Attendees</label>
+                  <input name="attendees" type="number"
+                    value={editingBooking.attendees}
+                    onChange={handleEditChange} required min="1" />
+                </div>
+                <button type="submit" className="btn-submit"
+                  style={{ width: '100%', marginTop: '16px' }}>
+                  Update Booking
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
