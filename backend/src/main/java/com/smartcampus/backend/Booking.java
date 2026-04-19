@@ -2,6 +2,9 @@ package com.smartcampus.backend;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -11,18 +14,33 @@ public class Booking {
     @Id
     private String id;
 
+    @NotBlank(message = "Resource ID is required")
     private String resourceId;
+
+    @NotBlank(message = "Resource name is required")
     private String resourceName;
+
+    @NotNull(message = "Date is required")
     private LocalDate date;
+
+    @NotNull(message = "Start time is required")
     private LocalTime startTime;
+
+    @NotNull(message = "End time is required")
     private LocalTime endTime;
+
+    @NotBlank(message = "User ID is required")
     private String userId;
+
+    @NotBlank(message = "Purpose is required")
     private String purpose;
+
+    @Min(value = 1, message = "Attendees must be at least 1")
     private int attendees;
-    private String status; // PENDING, APPROVED, REJECTED, CANCELLED
+
+    private String status;
     private String rejectionReason;
 
-    // Constructor
     public Booking() {
         this.status = "PENDING";
     }
