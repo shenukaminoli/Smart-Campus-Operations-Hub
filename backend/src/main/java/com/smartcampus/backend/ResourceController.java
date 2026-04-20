@@ -1,3 +1,6 @@
+resourse controller
+
+
 package com.smartcampus.backend;
 
 import jakarta.validation.Valid;
