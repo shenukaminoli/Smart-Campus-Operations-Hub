@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { createResource, deleteResource, getResources, updateResource } from "./resourceApi";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { 
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend 
@@ -23,11 +23,13 @@ function ResourceManagementPage({ onNavigate }) {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [filters, setFilters] = useState({
     type: "",
     minCapacity: "",
+    maxCapacity: "",
     location: "",
     status: "",
     sortBy: "name",
@@ -38,6 +40,7 @@ function ResourceManagementPage({ onNavigate }) {
     try {
       const params = { ...filters };
       if (!params.minCapacity) delete params.minCapacity;
+      if (!params.maxCapacity) delete params.maxCapacity;
       const res = await getResources(params);
       setResources(res.data);
     } catch (e) {
@@ -102,13 +105,30 @@ function ResourceManagementPage({ onNavigate }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const onDelete = async (id) => {
-    if (!window.confirm("Delete this resource?")) return;
+  const onDelete = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) return;
     try {
       await deleteResource(id);
       fetchResources();
     } catch {
       setError("Delete failed");
+    }
+  };
+
+  // Bulk Actions
+  const handleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleBulkStatusUpdate = async (newStatus) => {
+    setError("");
+    try {
+      const promises = selectedIds.map(id => updateResource(id, { ...resources.find(r => r.id === id), status: newStatus }));
+      await Promise.all(promises);
+      setSelectedIds([]);
+      fetchResources();
+    } catch {
+      setError("Bulk update failed. Some resources might not have updated.");
     }
   };
 
@@ -118,6 +138,12 @@ function ResourceManagementPage({ onNavigate }) {
     // Add Title
     doc.setFontSize(18);
     doc.text("Smart Campus - Resources Inventory Report", 14, 20);
+    
+    // Add Summary Section to PDF
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Total Assets: ${resources.length} | Active: ${activeCount} | Total Capacity: ${totalCapacity}`, 14, 30);
+
     doc.setFontSize(11);
     doc.setTextColor(100);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
@@ -133,10 +159,10 @@ function ResourceManagementPage({ onNavigate }) {
     ]);
 
     // Generate Table
-    doc.autoTable({
+    autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 35,
+      startY: 40,
       theme: 'striped',
       headStyles: { fillColor: [0, 51, 102] } // Match your #003366 theme
     });
@@ -148,6 +174,7 @@ function ResourceManagementPage({ onNavigate }) {
     setFilters({
       type: "",
       minCapacity: "",
+      maxCapacity: "",
       location: "",
       status: "",
       sortBy: "name",
@@ -156,48 +183,66 @@ function ResourceManagementPage({ onNavigate }) {
     fetchResources();
   };
 
-  // Local filtering for immediate feedback
-  const filteredResources = resources.filter((r) => {
+  // Interactive Chart Logic
+  const handleChartClick = (data, type) => {
+    if (data && data.name) {
+      setFilters(prev => ({ ...prev, [type]: data.name }));
+      // Auto-trigger fetch
+      const newFilters = { ...filters, [type]: data.name };
+      const params = { ...newFilters };
+      if (!params.minCapacity) delete params.minCapacity;
+      if (!params.maxCapacity) delete params.maxCapacity;
+      getResources(params).then(res => setResources(res.data));
+    }
+  };
+
+  // Optimized Local filtering for immediate feedback
+  const filteredResources = useMemo(() => resources.filter((r) => {
     const q = keyword.toLowerCase().trim();
     if (!q) return true;
     return (
       (r.name || "").toLowerCase().includes(q) ||
       (r.location || "").toLowerCase().includes(q) ||
-      (r.type || "").toLowerCase().includes(q)
+      (r.type || "").toLowerCase().includes(q) ||
+      // Capacity range local logic
+      (filters.minCapacity === "" || r.capacity >= Number(filters.minCapacity)) &&
+      (filters.maxCapacity === "" || r.capacity <= Number(filters.maxCapacity))
     );
-  });
+  }), [resources, keyword, filters.minCapacity, filters.maxCapacity]);
 
-  // Statistics
-  const activeCount = resources.filter(r => r.status === 'ACTIVE').length;
-  const outCount = resources.filter(r => r.status === 'OUT_OF_SERVICE').length;
+  // Optimized Statistics and Chart Data
+  const { activeCount, outCount, totalCapacity, activeCapacity, statusData, locationData, typeData, capData } = useMemo(() => {
+    const active = resources.filter(r => r.status === 'ACTIVE');
+    const out = resources.filter(r => r.status === 'OUT_OF_SERVICE');
+    
+    const statusMap = {};
+    const locationMap = {};
+    const typeMap = {};
+    const capMap = {};
+    const capCount = {};
 
-  // New Analytics Data
-  const statusMap = {};
-  const locationMap = {};
-  resources.forEach(r => {
-    statusMap[r.status] = (statusMap[r.status] || 0) + 1;
-    locationMap[r.location] = (locationMap[r.location] || 0) + 1;
-  });
+    resources.forEach(r => {
+      statusMap[r.status] = (statusMap[r.status] || 0) + 1;
+      locationMap[r.location] = (locationMap[r.location] || 0) + 1;
+      typeMap[r.type] = (typeMap[r.type] || 0) + 1;
+      capMap[r.type] = (capMap[r.type] || 0) + Number(r.capacity);
+      capCount[r.type] = (capCount[r.type] || 0) + 1;
+    });
 
-  const statusData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
-  const locationData = Object.entries(locationMap).map(([name, value]) => ({ name, value }));
-
-  // Existing Analytics Data
-  // Analytics Data
-  const typeMap = {};
-  const capMap = {};
-  const capCount = {};
-  resources.forEach(r => {
-    typeMap[r.type] = (typeMap[r.type] || 0) + 1;
-    capMap[r.type] = (capMap[r.type] || 0) + Number(r.capacity);
-    capCount[r.type] = (capCount[r.type] || 0) + 1;
-  });
-
-  const typeData = Object.entries(typeMap).map(([name, value]) => ({ name, value }));
-  const capData = Object.keys(capMap).map(type => ({
-    name: type,
-    average: Math.round(capMap[type] / capCount[type])
-  }));
+    return {
+      activeCount: active.length,
+      outCount: out.length,
+      totalCapacity: resources.reduce((sum, r) => sum + (Number(r.capacity) || 0), 0),
+      activeCapacity: active.reduce((sum, r) => sum + (Number(r.capacity) || 0), 0),
+      statusData: Object.entries(statusMap).map(([name, value]) => ({ name, value })),
+      locationData: Object.entries(locationMap).map(([name, value]) => ({ name, value })),
+      typeData: Object.entries(typeMap).map(([name, value]) => ({ name, value })),
+      capData: Object.keys(capMap).map(type => ({
+        name: type,
+        average: Math.round(capMap[type] / capCount[type])
+      }))
+    };
+  }, [resources]);
 
   const CHART_COLORS = ['#003366', '#FFB800', '#16a34a', '#dc2626', '#90a4ae', '#607d8b', '#795548'];
 
@@ -223,6 +268,7 @@ function ResourceManagementPage({ onNavigate }) {
         <div className="stat-card">
           <p>Total Resources</p>
           <h3>{resources.length}</h3>
+          <small>{totalCapacity} Total Seats</small>
         </div>
         <div className="stat-card stat-active">
           <p>Active</p>
@@ -231,6 +277,11 @@ function ResourceManagementPage({ onNavigate }) {
         <div className="stat-card stat-out">
           <p>Out of Service</p>
           <h3>{outCount}</h3>
+        </div>
+        <div className="stat-card" style={{borderTopColor: '#FFB800'}}>
+          <p>Operational Capacity</p>
+          <h3>{activeCapacity}</h3>
+          <small>Seats currently available</small>
         </div>
       </section>
 
@@ -248,6 +299,7 @@ function ResourceManagementPage({ onNavigate }) {
                   outerRadius={80}
                   paddingAngle={5}
                   dataKey="value"
+                  onClick={(data) => handleChartClick(data, 'type')}
                 >
                   {typeData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
@@ -261,7 +313,7 @@ function ResourceManagementPage({ onNavigate }) {
           <div style={{ height: '300px' }}>
             <h4 style={{ textAlign: 'center', color: '#003366', marginBottom: '10px' }}>Avg. Capacity by Type</h4>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={capData}>
+              <BarChart data={capData} onClick={(data) => data && handleChartClick(data.activePayload[0].payload, 'type')}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
@@ -288,6 +340,7 @@ function ResourceManagementPage({ onNavigate }) {
                   outerRadius={80}
                   paddingAngle={5}
                   dataKey="value"
+                  onClick={(data) => handleChartClick(data, 'status')}
                 >
                   {statusData.map((entry, index) => (
                     <Cell 
@@ -305,7 +358,7 @@ function ResourceManagementPage({ onNavigate }) {
           <div style={{ height: '300px' }}>
             <h4 style={{ textAlign: 'center', color: '#003366', marginBottom: '10px' }}>Resources by Location</h4>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={locationData}>
+              <BarChart data={locationData} onClick={(data) => data && handleChartClick(data.activePayload[0].payload, 'location')}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis allowDecimals={false} axisLine={false} tickLine={false} />
@@ -364,6 +417,8 @@ function ResourceManagementPage({ onNavigate }) {
             <option value="EQUIPMENT">EQUIPMENT</option>
           </select>
           <input placeholder="Location" value={filters.location} onChange={(e) => setFilters({ ...filters, location: e.target.value })} />
+          <input type="number" placeholder="Min Cap" value={filters.minCapacity} onChange={(e) => setFilters({ ...filters, minCapacity: e.target.value })} />
+          <input type="number" placeholder="Max Cap" value={filters.maxCapacity} onChange={(e) => setFilters({ ...filters, maxCapacity: e.target.value })} />
           <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
             <option value="">All Status</option>
             <option value="ACTIVE">ACTIVE</option>
