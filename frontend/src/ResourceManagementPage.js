@@ -17,6 +17,7 @@ function ResourceManagementPage({ onNavigate }) {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [keyword, setKeyword] = useState("");
   const [filters, setFilters] = useState({
     type: "",
     minCapacity: "",
@@ -63,7 +64,21 @@ function ResourceManagementPage({ onNavigate }) {
       setEditId(null);
       fetchResources();
     } catch (err) {
-      setError("Save failed. Check backend connection.");
+      console.error("Save Error:", err);
+      let msg = "Save failed: ";
+      if (err.response && err.response.data) {
+        const data = err.response.data;
+        if (data.message) {
+          msg += data.message;
+        } else if (typeof data === 'object') {
+          msg += Object.entries(data).map(([field, error]) => `${field}: ${error}`).join(", ");
+        } else {
+          msg += data.toString();
+        }
+      } else {
+        msg += "Check backend connection.";
+      }
+      setError(msg);
     }
   };
 
@@ -90,6 +105,33 @@ function ResourceManagementPage({ onNavigate }) {
     }
   };
 
+  const resetFilters = () => {
+    setFilters({
+      type: "",
+      minCapacity: "",
+      location: "",
+      status: "",
+      sortBy: "name",
+    });
+    setKeyword("");
+    fetchResources();
+  };
+
+  // Local filtering for immediate feedback
+  const filteredResources = resources.filter((r) => {
+    const q = keyword.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      (r.name || "").toLowerCase().includes(q) ||
+      (r.location || "").toLowerCase().includes(q) ||
+      (r.type || "").toLowerCase().includes(q)
+    );
+  });
+
+  // Statistics
+  const activeCount = resources.filter(r => r.status === 'ACTIVE').length;
+  const outCount = resources.filter(r => r.status === 'OUT_OF_SERVICE').length;
+
   return (
     <div className="resource-page">
       <section className="resource-header">
@@ -100,6 +142,21 @@ function ResourceManagementPage({ onNavigate }) {
         <button className="btn-admin-toggle" onClick={onNavigate}>
           Back to Catalogue
         </button>
+      </section>
+
+      <section className="resource-stats">
+        <div className="stat-card">
+          <p>Total Resources</p>
+          <h3>{resources.length}</h3>
+        </div>
+        <div className="stat-card stat-active">
+          <p>Active</p>
+          <h3>{activeCount}</h3>
+        </div>
+        <div className="stat-card stat-out">
+          <p>Out of Service</p>
+          <h3>{outCount}</h3>
+        </div>
       </section>
 
       {error && <p className="error">{error}</p>}
@@ -131,6 +188,7 @@ function ResourceManagementPage({ onNavigate }) {
       <section className="section-card">
         <div className="section-title">
           <h3>🔍 Filter & Sort</h3>
+          <button className="btn-ghost" onClick={resetFilters}>Reset Filters</button>
         </div>
         <form className="filters" onSubmit={(e) => { e.preventDefault(); fetchResources(); }}>
           <select value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}>
@@ -152,11 +210,21 @@ function ResourceManagementPage({ onNavigate }) {
           </select>
           <button type="submit" className="btn-primary-action">Apply</button>
         </form>
+        <div style={{ marginTop: '16px' }}>
+          <input 
+            className="keyword-search" 
+            style={{ marginTop: 0 }}
+            placeholder="Live search by name, type, or location in current results..." 
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+          />
+        </div>
       </section>
 
       <div className="resource-grid">
         {loading && <div className="info-box">Loading...</div>}
-        {!loading && resources.map((r) => (
+        {!loading && filteredResources.length === 0 && <div className="info-box">No resources found matching search.</div>}
+        {!loading && filteredResources.map((r) => (
           <div className="resource-card" key={r.id}>
             <h3>{r.name}</h3>
             <p><b>Type:</b> {r.type} | <b>Cap:</b> {r.capacity}</p>
