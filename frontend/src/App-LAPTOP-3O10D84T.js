@@ -35,8 +35,6 @@ function App() {
                   onClick={() => setCurrentPage('bookings')}>Make a Booking</button>
                 <button className="btn-secondary"
                   onClick={() => setCurrentPage('dashboard')}>View Dashboard</button>
-                <button className="btn-primary"
-                  onClick={() => setCurrentPage('resources')}>Browse Resources</button>
               </div>
             </div>
           </section>

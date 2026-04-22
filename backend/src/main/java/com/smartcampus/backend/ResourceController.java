@@ -1,6 +1,3 @@
-resourse controller
-
-
 package com.smartcampus.backend;
 
 import jakarta.validation.Valid;
@@ -61,7 +58,6 @@ public class ResourceController {
             result.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         }
-
         try {
             return ResponseEntity.ok(resourceService.updateResource(id, resource));
         } catch (RuntimeException e) {

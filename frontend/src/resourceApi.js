@@ -1,5 +1,4 @@
 import axios from "axios";
-
 const API = "http://localhost:8081/api/resources";
 
 export const getResources = (params) => axios.get(API, { params });

@@ -42,7 +42,6 @@ function ResourcePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     const payload = {
       ...form,
       capacity: Number(form.capacity),
@@ -50,7 +49,6 @@ function ResourcePage() {
         ? form.availabilityWindows.split(",").map((x) => x.trim()).filter(Boolean)
         : []
     };
-
     try {
       if (editId) {
         await updateResource(editId, payload);
@@ -61,7 +59,22 @@ function ResourcePage() {
       setEditId(null);
       fetchResources();
     } catch (err) {
-      setError("Save failed. Check form values.");
+      console.error("Save Error:", err);
+      let msg = "Save failed: ";
+      if (err.response && err.response.data) {
+        // If the backend returns a Map of validation errors (standard Spring Boot behavior)
+        const data = err.response.data;
+        if (data.message) {
+          msg += data.message;
+        } else if (typeof data === 'object') {
+          msg += Object.entries(data).map(([field, error]) => `${field}: ${error}`).join(", ");
+        } else {
+          msg += data.toString();
+        }
+      } else {
+        msg += "Could not connect to the backend server. Is it running on port 8081?";
+      }
+      setError(msg);
     }
   };
 
@@ -95,9 +108,7 @@ function ResourcePage() {
   return (
     <div className="resource-page">
       <h2>Facilities & Assets Catalogue</h2>
-
       {error && <p className="error">{error}</p>}
-
       <form className="resource-form" onSubmit={handleSubmit}>
         <input
           placeholder="Resource Name"
@@ -136,7 +147,6 @@ function ResourcePage() {
         />
         <button type="submit">{editId ? "Update Resource" : "Add Resource"}</button>
       </form>
-
       <form className="filters" onSubmit={applyFilters}>
         <input
           placeholder="Type"
@@ -172,7 +182,6 @@ function ResourcePage() {
         </select>
         <button type="submit">Apply Filters</button>
       </form>
-
       <div className="resource-grid">
         {resources.map((r) => (
           <div className="resource-card" key={r.id}>

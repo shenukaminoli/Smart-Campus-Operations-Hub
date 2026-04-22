@@ -19,7 +19,7 @@ function App() {
           <a href="#dashboard" onClick={() => setCurrentPage('dashboard')}>Dashboard</a>
           <a href="#bookings" onClick={() => setCurrentPage('bookings')}>Bookings</a>
           <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
-          <a href="#resources" onClick={() => setCurrentPage('resources')}>Resources</a>
+          <a href="#resources">Resources</a>
           <a href="#login" className="btn-login">Login</a>
         </div>
       </nav>
@@ -35,8 +35,6 @@ function App() {
                   onClick={() => setCurrentPage('bookings')}>Make a Booking</button>
                 <button className="btn-secondary"
                   onClick={() => setCurrentPage('dashboard')}>View Dashboard</button>
-                <button className="btn-primary"
-                  onClick={() => setCurrentPage('resources')}>Browse Resources</button>
               </div>
             </div>
           </section>
@@ -123,7 +121,6 @@ function App() {
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
       {currentPage === 'calendar' && <CalendarPage />}
-      {currentPage === 'resources' && <ResourcePage />}
     </div>
   );
 }
