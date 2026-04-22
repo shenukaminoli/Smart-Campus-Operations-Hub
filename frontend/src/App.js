@@ -4,6 +4,7 @@ import BookingPage from './BookingPage';
 import DashboardPage from './DashboardPage';
 import CalendarPage from './CalendarPage';
 import ResourcePage from "./ResourcePage";
+import ResourceManagementPage from "./ResourceManagementPage";
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -123,7 +124,8 @@ function App() {
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
       {currentPage === 'calendar' && <CalendarPage />}
-      {currentPage === 'resources' && <ResourcePage />}
+      {currentPage === 'resources' && <ResourcePage onNavigate={() => setCurrentPage('resource-management')} />}
+      {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
     </div>
   );
 }
