@@ -171,6 +171,18 @@ function ResourceManagementPage({ onNavigate }) {
   const activeCount = resources.filter(r => r.status === 'ACTIVE').length;
   const outCount = resources.filter(r => r.status === 'OUT_OF_SERVICE').length;
 
+  // New Analytics Data
+  const statusMap = {};
+  const locationMap = {};
+  resources.forEach(r => {
+    statusMap[r.status] = (statusMap[r.status] || 0) + 1;
+    locationMap[r.location] = (locationMap[r.location] || 0) + 1;
+  });
+
+  const statusData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
+  const locationData = Object.entries(locationMap).map(([name, value]) => ({ name, value }));
+
+  // Existing Analytics Data
   // Analytics Data
   const typeMap = {};
   const capMap = {};
@@ -187,7 +199,7 @@ function ResourceManagementPage({ onNavigate }) {
     average: Math.round(capMap[type] / capCount[type])
   }));
 
-  const CHART_COLORS = ['#003366', '#FFB800', '#16a34a', '#dc2626', '#90a4ae'];
+  const CHART_COLORS = ['#003366', '#FFB800', '#16a34a', '#dc2626', '#90a4ae', '#607d8b', '#795548'];
 
   return (
     <div className="resource-page">
@@ -257,6 +269,52 @@ function ResourceManagementPage({ onNavigate }) {
                 <Bar 
                   dataKey="average" 
                   fill="#FFB800" 
+                  radius={[10, 10, 0, 0]} 
+                  barSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div style={{ height: '300px' }}>
+            <h4 style={{ textAlign: 'center', color: '#003366', marginBottom: '10px' }}>Status Distribution</h4>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-status-${index}`} 
+                      fill={entry.name === 'ACTIVE' ? '#16a34a' : '#dc2626'} 
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div style={{ height: '300px' }}>
+            <h4 style={{ textAlign: 'center', color: '#003366', marginBottom: '10px' }}>Resources by Location</h4>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={locationData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{fill: '#f4f7fc'}} />
+                <Legend />
+                <Bar 
+                  dataKey="value" 
+                  name="Resources"
+                  fill="#003366" 
                   radius={[10, 10, 0, 0]} 
                   barSize={40}
                 />
