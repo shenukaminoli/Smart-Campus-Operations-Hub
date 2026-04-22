@@ -7,12 +7,21 @@ function ResourcePage({ onNavigate }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const [filters, setFilters] = useState({
+    type: "",
+    minCapacity: "",
+    location: "",
+    status: "",
+    sortBy: "name",
+  });
 
   const fetchResources = async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await getResources();
+      const params = { ...filters };
+      if (!params.minCapacity) delete params.minCapacity;
+      const res = await getResources(params);
       setResources(res.data);
     } catch (e) {
       setError("Failed to load resources");
@@ -24,6 +33,11 @@ function ResourcePage({ onNavigate }) {
   useEffect(() => {
     fetchResources();
   }, []);
+
+  const handleFilterSubmit = (e) => {
+    e.preventDefault();
+    fetchResources();
+  };
 
   // Local filtering logic for immediate feedback
   const filteredByKeyword = resources.filter((r) => {
@@ -68,15 +82,54 @@ function ResourcePage({ onNavigate }) {
       </section>
 
       <section className="section-card search-only">
-        <div className="section-title">
-          <h3>🔍 Search Resources</h3>
+        <div className="section-title"><h3>🔍 Filter & Search</h3></div>
+        <form className="filters" onSubmit={handleFilterSubmit}>
+          <select 
+            value={filters.type} 
+            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+          >
+            <option value="">All Types</option>
+            <option value="LECTURE_HALL">LECTURE_HALL</option>
+            <option value="LAB">LAB</option>
+            <option value="MEETING_ROOM">MEETING_ROOM</option>
+            <option value="EQUIPMENT">EQUIPMENT</option>
+          </select>
+
+          <input 
+            placeholder="Location" 
+            value={filters.location} 
+            onChange={(e) => setFilters({ ...filters, location: e.target.value })} 
+          />
+
+          <select 
+            value={filters.status} 
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+          >
+            <option value="">All Status</option>
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+          </select>
+
+          <select 
+            value={filters.sortBy} 
+            onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+          >
+            <option value="name">Sort by Name</option>
+            <option value="capacity">Sort by Capacity</option>
+          </select>
+
+          <button type="submit" className="btn-primary-action">Apply Filters</button>
+        </form>
+
+        <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+          <input
+            className="keyword-search"
+            style={{ marginTop: 0 }}
+            placeholder="Quick search by keywords in current results..."
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+          />
         </div>
-        <input
-          className="keyword-search"
-          placeholder="Search by name, type, or location..."
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-        />
       </section>
 
       {error && <p className="error">{error}</p>}
