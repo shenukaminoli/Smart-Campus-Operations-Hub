@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { createResource, deleteResource, getResources, updateResource } from "./resourceApi";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { 
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend 
+} from 'recharts';
 import "./ResourcePage.css";
 
 const initialForm = {
@@ -18,6 +24,7 @@ function ResourceManagementPage({ onNavigate }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [filters, setFilters] = useState({
     type: "",
     minCapacity: "",
@@ -105,6 +112,38 @@ function ResourceManagementPage({ onNavigate }) {
     }
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    
+    // Add Title
+    doc.setFontSize(18);
+    doc.text("Smart Campus - Resources Inventory Report", 14, 20);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+
+    // Prepare Table Data
+    const tableColumn = ["Name", "Type", "Capacity", "Location", "Status"];
+    const tableRows = resources.map(r => [
+      r.name,
+      r.type,
+      r.capacity,
+      r.location,
+      r.status
+    ]);
+
+    // Generate Table
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 35,
+      theme: 'striped',
+      headStyles: { fillColor: [0, 51, 102] } // Match your #003366 theme
+    });
+
+    doc.save("campus_resources_report.pdf");
+  };
+
   const resetFilters = () => {
     setFilters({
       type: "",
@@ -132,16 +171,40 @@ function ResourceManagementPage({ onNavigate }) {
   const activeCount = resources.filter(r => r.status === 'ACTIVE').length;
   const outCount = resources.filter(r => r.status === 'OUT_OF_SERVICE').length;
 
+  // Analytics Data
+  const typeMap = {};
+  const capMap = {};
+  const capCount = {};
+  resources.forEach(r => {
+    typeMap[r.type] = (typeMap[r.type] || 0) + 1;
+    capMap[r.type] = (capMap[r.type] || 0) + Number(r.capacity);
+    capCount[r.type] = (capCount[r.type] || 0) + 1;
+  });
+
+  const typeData = Object.entries(typeMap).map(([name, value]) => ({ name, value }));
+  const capData = Object.keys(capMap).map(type => ({
+    name: type,
+    average: Math.round(capMap[type] / capCount[type])
+  }));
+
+  const CHART_COLORS = ['#003366', '#FFB800', '#16a34a', '#dc2626', '#90a4ae'];
+
   return (
     <div className="resource-page">
       <section className="resource-header">
-        <div>
+        <div style={{ flex: 1 }}>
           <h2>Resource Management</h2>
           <p>Admin panel to add, edit or remove campus facilities.</p>
         </div>
-        <button className="btn-admin-toggle" onClick={onNavigate}>
-          Back to Catalogue
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn-ghost" onClick={() => setShowAnalytics(!showAnalytics)}>
+            {showAnalytics ? "📊 Hide Analytics" : "📊 Show Analytics"}
+          </button>
+          <button className="btn-ghost" onClick={exportToPDF}>⬇️ Export PDF</button>
+          <button className="btn-admin-toggle" onClick={onNavigate}>
+            Back to Catalogue
+          </button>
+        </div>
       </section>
 
       <section className="resource-stats">
@@ -158,6 +221,50 @@ function ResourceManagementPage({ onNavigate }) {
           <h3>{outCount}</h3>
         </div>
       </section>
+
+      {showAnalytics && resources.length > 0 && (
+        <section className="section-card analytics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ height: '300px' }}>
+            <h4 style={{ textAlign: 'center', color: '#003366', marginBottom: '10px' }}>Type Distribution</h4>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={typeData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {typeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ height: '300px' }}>
+            <h4 style={{ textAlign: 'center', color: '#003366', marginBottom: '10px' }}>Avg. Capacity by Type</h4>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={capData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <Tooltip cursor={{fill: '#f4f7fc'}} />
+                <Bar 
+                  dataKey="average" 
+                  fill="#FFB800" 
+                  radius={[10, 10, 0, 0]} 
+                  barSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+      )}
 
       {error && <p className="error">{error}</p>}
 
