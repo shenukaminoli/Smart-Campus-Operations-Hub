@@ -218,39 +218,106 @@
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.btn-share:hover {
-  background: #FFB800;
-}
-
-.share-toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #003366;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 30px;
-  z-index: 1000;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  font-weight: 600;
-  animation: slideUpFade 0.3s ease;
-}
-
-@keyframes slideUpFade {
-  from { bottom: 10px; opacity: 0; }
-  to { bottom: 30px; opacity: 1; }
-}
-
-.amenity-toggles {
+.btn-icon-alt {
+  background: #f0f4f8;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
+.btn-icon-alt:hover {
+  background: #FFB800;
+  transform: translateY(-2px);
+}
+
+.metadata-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #444;
+  font-weight: 500;
+}
+
+.meta-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-dot.active { background: #16a34a; box-shadow: 0 0 8px #16a34a; }
+.status-dot.out { background: #dc2626; }
+
+.status-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  margin-right: auto;
+}
+
+.availability-pill {
+  font-size: 11px;
+  background: white;
+  color: #16a34a;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-weight: 600;
+}
+
+.amenities {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #f1f5f9;
+  margin-bottom: 8px;
+}
+
+.resource-card .btn-primary-action {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  font-size: 15px;
+  background: #003366;
+  color: #FFB800;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.resource-card .btn-primary-action:hover {
+  background: #002244;
+  transform: scale(1.02);
+  box-shadow: 0 10px 20px rgba(0, 51, 102, 0.15);
+}
 .amenity-pill {
-  background: #f0f4f8;
-  padding: 6px 12px;
   border-radius: 20px;
   font-size: 13px;
   cursor: pointer;
