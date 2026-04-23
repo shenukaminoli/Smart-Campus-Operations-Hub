@@ -26,7 +26,9 @@ function LoginPage({ onLoginSuccess }) {
     setLoading(true);
     try {
       // Temporary manager-only local auth until backend role auth is wired.
-      if (loginForm.email === MANAGER_USERNAME && loginForm.password === MANAGER_PASSWORD) {
+      const normalizedLoginId = (loginForm.email || '').trim().toLowerCase();
+      const managerAliases = ['ticket_manager', 'ticket manager'];
+      if (managerAliases.includes(normalizedLoginId) && loginForm.password === MANAGER_PASSWORD) {
         const managerUser = {
           id: 'manager-local',
           fullName: 'Ticket Manager',
@@ -46,7 +48,11 @@ function LoginPage({ onLoginSuccess }) {
       onLoginSuccess(user);
     } catch (err) {
       const data = err.response?.data;
-      setErrorMsg(data?.error || 'Login failed. Please try again.');
+      if (!err.response) {
+        setErrorMsg('Backend server is not reachable. Please start backend on port 8081.');
+      } else {
+        setErrorMsg(data?.error || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
