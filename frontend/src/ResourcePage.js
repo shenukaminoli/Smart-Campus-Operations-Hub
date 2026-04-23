@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createResource, deleteResource, getResources, updateResource } from "./resourceApi";
 import "./ResourcePage.css";
 
-function ResourcePage({ onNavigate }) {
+function ResourcePage({ onNavigate, onBook }) {
   const [resources, setResources] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -151,7 +151,21 @@ function ResourcePage({ onNavigate }) {
                 {r.status}
               </span>
             </p>
-            <p><b>Availability:</b> {(r.availabilityWindows || []).join(" | ") || "N/A"}</p>
+            <div className="amenities">
+               {/* Example static amenities - these can be made dynamic if the backend is updated */}
+               {r.type === 'LAB' && <span title="High-end PCs">🖥️</span>}
+               {r.type === 'LECTURE_HALL' && <span title="Projector Available">📽️</span>}
+               {r.capacity > 20 && <span title="Air Conditioned">❄️</span>}
+               <span title="Free WiFi">📶</span>
+            </div>
+            <p className="availability"><b>Hours:</b> {(r.availabilityWindows || []).join(" | ") || "24/7"}</p>
+            <button 
+              className="btn-primary-action" 
+              style={{ width: '100%', marginTop: '15px', fontSize: '14px', padding: '10px' }}
+              onClick={onBook}
+            >
+              Book Now
+            </button>
           </div>
         ))}
       </div>

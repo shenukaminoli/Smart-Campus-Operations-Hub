@@ -124,7 +124,10 @@ function App() {
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
       {currentPage === 'calendar' && <CalendarPage />}
-      {currentPage === 'resources' && <ResourcePage onNavigate={() => setCurrentPage('resource-management')} />}
+      {currentPage === 'resources' && <ResourcePage 
+        onNavigate={() => setCurrentPage('resource-management')} 
+        onBook={() => setCurrentPage('bookings')}
+      />}
       {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
     </div>
   );

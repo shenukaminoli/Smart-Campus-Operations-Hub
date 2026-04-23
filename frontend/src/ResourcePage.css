@@ -179,6 +179,18 @@
   color: #444;
 }
 
+.amenities {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0;
+  font-size: 18px;
+}
+
+.amenities span {
+  cursor: help;
+  transition: transform 0.2s;
+}
+
 .availability {
   font-size: 12px !important;
   color: #777 !important;
