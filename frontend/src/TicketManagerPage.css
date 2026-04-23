@@ -1,0 +1,148 @@
+.manager-page {
+  padding: 40px 60px;
+  min-height: 100vh;
+  background: #f4f7fc;
+}
+
+.manager-page h1 {
+  margin: 0 0 8px;
+  color: #003366;
+  font-size: 32px;
+}
+
+.page-subtitle {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 16px;
+  border-top: 4px solid #003366;
+  box-shadow: 0 4px 20px rgba(0, 51, 102, 0.08);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.panel h2 {
+  margin: 0 0 16px;
+  color: #003366;
+}
+
+.tech-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tech-form input,
+.tech-form select,
+.filters input,
+.filters select,
+.row-buttons select {
+  border: 1px solid #b0bec5;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #003366;
+}
+
+.actions-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-primary,
+.btn-muted,
+.btn-small {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: #003366;
+  color: #ffb800;
+}
+
+.btn-muted {
+  background: #eceff1;
+  color: #37474f;
+}
+
+.btn-small {
+  background: #0066cc;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.btn-small.danger {
+  background: #c0392b;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.filters input {
+  flex: 1;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background: #003366;
+  color: #ffb800;
+  text-align: left;
+  padding: 12px;
+}
+
+.table td {
+  border-bottom: 1px solid #eef1f7;
+  padding: 12px;
+}
+
+.row-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 999;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.toast-success {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.toast-error {
+  background: #fdecea;
+  color: #b71c1c;
+}
