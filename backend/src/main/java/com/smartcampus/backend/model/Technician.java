@@ -29,7 +29,8 @@ public class Technician {
     @NotBlank(message = "Specialization is required")
     private String specialization;
 
-    private boolean active = true;
+    private Boolean available = true;
+    private Boolean active;
 
     public String getId() {
         return id;
@@ -79,11 +80,29 @@ public class Technician {
         this.specialization = specialization;
     }
 
-    public boolean isActive() {
+    public Boolean getAvailable() {
+        return available;
+    }
+
+    public boolean isAvailable() {
+        if (available != null) {
+            return available;
+        }
+        if (active != null) {
+            return active;
+        }
+        return true;
+    }
+
+    public void setAvailable(Boolean available) {
+        this.available = available;
+    }
+
+    public Boolean getActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
     }
 }
