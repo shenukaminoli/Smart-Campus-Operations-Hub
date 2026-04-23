@@ -23,6 +23,7 @@ function ResourceManagementPage({ onNavigate }) {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [selectedIds, setSelectedIds] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -57,6 +58,28 @@ function ResourceManagementPage({ onNavigate }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Frontend Validation
+    if (!form.name.trim() || !form.location.trim()) {
+      setError("Validation Error: Resource Name and Location are required.");
+      return;
+    }
+
+    if (Number(form.capacity) < 1) {
+      setError("Validation Error: Capacity must be a positive number (at least 1).");
+      return;
+    }
+
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = resources.some(r => 
+      r.name.toLowerCase().trim() === form.name.toLowerCase().trim() && r.id !== editId
+    );
+
+    if (isDuplicate) {
+      setError(`Validation Error: A resource named "${form.name.trim()}" already exists.`);
+      return;
+    }
+
     const payload = {
       ...form,
       capacity: Number(form.capacity),
@@ -112,6 +135,16 @@ function ResourceManagementPage({ onNavigate }) {
       fetchResources();
     } catch {
       setError("Delete failed");
+    }
+  };
+
+  const handleToggleStatus = async (resource) => {
+    const newStatus = resource.status === "ACTIVE" ? "OUT_OF_SERVICE" : "ACTIVE";
+    try {
+      await updateResource(resource.id, { ...resource, status: newStatus });
+      fetchResources();
+    } catch {
+      setError("Failed to toggle status quickly.");
     }
   };
 
@@ -244,6 +277,7 @@ function ResourceManagementPage({ onNavigate }) {
     };
   }, [resources]);
 
+  const BLUE_SHADES = ['#003366', '#1a4775', '#335c85', '#4d7094', '#6685a3', '#8099b3', '#99adc2'];
   const CHART_COLORS = ['#003366', '#FFB800', '#16a34a', '#dc2626', '#90a4ae', '#607d8b', '#795548'];
 
   return (
@@ -258,6 +292,10 @@ function ResourceManagementPage({ onNavigate }) {
             {showAnalytics ? "📊 Hide Analytics" : "📊 Show Analytics"}
           </button>
           <button className="btn-ghost" onClick={exportToPDF}>⬇️ Export PDF</button>
+          <div className="view-mode-selector">
+            <button className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')}>🔲</button>
+            <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>📝</button>
+          </div>
           <button className="btn-admin-toggle" onClick={onNavigate}>
             Back to Catalogue
           </button>
@@ -302,7 +340,7 @@ function ResourceManagementPage({ onNavigate }) {
                   onClick={(data) => handleChartClick(data, 'type')}
                 >
                   {typeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={BLUE_SHADES[index % BLUE_SHADES.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -320,10 +358,13 @@ function ResourceManagementPage({ onNavigate }) {
                 <Tooltip cursor={{fill: '#f4f7fc'}} />
                 <Bar 
                   dataKey="average" 
-                  fill="#FFB800" 
                   radius={[10, 10, 0, 0]} 
                   barSize={40}
-                />
+                >
+                  {capData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={BLUE_SHADES[index % BLUE_SHADES.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -367,10 +408,13 @@ function ResourceManagementPage({ onNavigate }) {
                 <Bar 
                   dataKey="value" 
                   name="Resources"
-                  fill="#003366" 
                   radius={[10, 10, 0, 0]} 
                   barSize={40}
-                />
+                >
+                  {locationData.map((entry, index) => (
+                    <Cell key={`cell-loc-${index}`} fill={BLUE_SHADES[index % BLUE_SHADES.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -392,7 +436,7 @@ function ResourceManagementPage({ onNavigate }) {
             <option value="MEETING_ROOM">MEETING_ROOM</option>
             <option value="EQUIPMENT">EQUIPMENT</option>
           </select>
-          <input type="number" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} required />
+          <input type="number" min="1" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} required />
           <input placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required />
           <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="ACTIVE">ACTIVE</option>
