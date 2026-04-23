@@ -3,8 +3,7 @@ import './App.css';
 import BookingPage from './BookingPage';
 import DashboardPage from './DashboardPage';
 import CalendarPage from './CalendarPage';
-import IncidentPage from './IncidentPage';
-import TicketManagerPage from './TicketManagerPage';
+import ResourcePage from "./ResourcePage";
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -19,10 +18,8 @@ function App() {
           <a href="#home" onClick={() => setCurrentPage('home')}>Home</a>
           <a href="#dashboard" onClick={() => setCurrentPage('dashboard')}>Dashboard</a>
           <a href="#bookings" onClick={() => setCurrentPage('bookings')}>Bookings</a>
-          <a href="#incidents" onClick={() => setCurrentPage('incidents')}>Incidents</a>
-          <a href="#ticket-manager" onClick={() => setCurrentPage('ticket-manager')}>Ticket Manager</a>
           <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
-          <a href="#resources" onClick={() => setCurrentPage('resources')}>Resources</a>
+          <a href="#resources">Resources</a>
           <a href="#login" className="btn-login">Login</a>
         </div>
       </nav>
@@ -38,8 +35,6 @@ function App() {
                   onClick={() => setCurrentPage('bookings')}>Make a Booking</button>
                 <button className="btn-secondary"
                   onClick={() => setCurrentPage('dashboard')}>View Dashboard</button>
-                <button className="btn-primary"
-                  onClick={() => setCurrentPage('resources')}>Browse Resources</button>
               </div>
             </div>
           </section>
@@ -125,14 +120,7 @@ function App() {
 
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
-      {currentPage === 'incidents' && <IncidentPage />}
-      {currentPage === 'ticket-manager' && <TicketManagerPage />}
       {currentPage === 'calendar' && <CalendarPage />}
-      {currentPage === 'resources' && <ResourcePage 
-        onNavigate={() => setCurrentPage('resource-management')} 
-        onBook={() => setCurrentPage('bookings')}
-      />}
-      {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
     </div>
   );
 }
