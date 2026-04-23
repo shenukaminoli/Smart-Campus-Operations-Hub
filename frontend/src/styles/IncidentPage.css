@@ -1,0 +1,314 @@
+.incident-page {
+  padding: 40px 60px;
+  background-color: #f4f7fc;
+  min-height: 100vh;
+}
+
+.incident-page h1 {
+  font-size: 32px;
+  color: #003366;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+
+.page-subtitle {
+  color: #666;
+  font-size: 15px;
+  margin-bottom: 32px;
+}
+
+.toast {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  z-index: 999;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.toast-success {
+  background-color: #e8f5e9;
+  color: #1b5e20;
+  border-left: 4px solid #4caf50;
+}
+
+.toast-error {
+  background-color: #fdecea;
+  color: #b71c1c;
+  border-left: 4px solid #ef5350;
+}
+
+.stats-cards {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 130px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 51, 102, 0.08);
+  border-top: 4px solid #003366;
+}
+
+.stat-card h3 {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.stat-total { border-top-color: #003366; color: #003366; }
+.stat-open { border-top-color: #ffb800; color: #9f7000; }
+.stat-progress { border-top-color: #0066cc; color: #0066cc; }
+.stat-resolved { border-top-color: #4caf50; color: #1b5e20; }
+.stat-closed { border-top-color: #607d8b; color: #455a64; }
+.stat-rejected { border-top-color: #ef5350; color: #b71c1c; }
+
+.incident-form-container {
+  background: white;
+  border-radius: 16px;
+  padding: 36px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 51, 102, 0.08);
+  border-top: 4px solid #ffb800;
+}
+
+.incident-form-container h2 {
+  font-size: 22px;
+  color: #003366;
+  margin: 0 0 24px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1.5px solid #b0bec5;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.form-row textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus,
+.search-input:focus,
+.filter-select:focus {
+  border-color: #003366;
+  box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+}
+
+.hint {
+  color: #667;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.btn-submit {
+  background-color: #003366;
+  color: #ffb800;
+  border: none;
+  padding: 14px 36px;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filters-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 15px rgba(0, 51, 102, 0.06);
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1.5px solid #b0bec5;
+  border-radius: 8px;
+}
+
+.filter-select {
+  padding: 10px 16px;
+  border: 1.5px solid #b0bec5;
+  border-radius: 8px;
+}
+
+.tickets-table-container {
+  background: white;
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow: 0 4px 20px rgba(0, 51, 102, 0.08);
+  border-top: 4px solid #003366;
+}
+
+.tickets-table-container h2 {
+  font-size: 22px;
+  color: #003366;
+  margin: 0 0 24px;
+}
+
+.ticket-count {
+  font-size: 13px;
+  background-color: #f4f7fc;
+  color: #003366;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.tickets-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tickets-table th {
+  background-color: #003366;
+  color: #ffb800;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.tickets-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef1f7;
+}
+
+.tickets-table tr:hover {
+  background-color: #f4f7fc;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-open {
+  background-color: #fff8e1;
+  color: #9f7000;
+}
+
+.status-in-progress {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.status-resolved {
+  background-color: #e8f5e9;
+  color: #1b5e20;
+}
+
+.status-closed {
+  background-color: #eceff1;
+  color: #455a64;
+}
+
+.status-rejected {
+  background-color: #fdecea;
+  color: #b71c1c;
+}
+
+.attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.attachments a {
+  color: #0066cc;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.attachments a:hover {
+  text-decoration: underline;
+}
+
+.notes {
+  max-width: 220px;
+  color: #5a6270;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.btn-assign,
+.btn-update {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-assign {
+  background-color: #003366;
+  color: #ffb800;
+}
+
+.btn-update {
+  background-color: #0066cc;
+  color: #fff;
+}
+
+.loading,
+.empty-state {
+  text-align: center;
+  padding: 48px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid #003366;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

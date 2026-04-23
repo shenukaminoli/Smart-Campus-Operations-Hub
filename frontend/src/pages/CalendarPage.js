@@ -3,7 +3,7 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import axios from 'axios';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import './CalendarPage.css';
+import '../styles/CalendarPage.css';
 
 const localizer = momentLocalizer(moment);
 const API = 'http://localhost:8081/api/bookings';

@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
-import './DashboardPage.css';
+import '../styles/DashboardPage.css';
 
 const API = 'http://localhost:8081/api/bookings';
 
@@ -18,6 +18,7 @@ const COLORS = {
 function DashboardPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editingBooking, setEditingBooking] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -75,6 +76,101 @@ function DashboardPage() {
 
   // Most booked resource
   const mostBooked = resourceData.sort((a, b) => b.count - a.count)[0];
+
+  const exportRecentBookingsToCSV = () => {
+    const headers = ['Resource', 'User', 'Date', 'Purpose', 'Status'];
+    const rows = bookings.slice(0, 5).map(b => [
+      b.resourceName,
+      b.userId,
+      b.date,
+      b.purpose,
+      b.status,
+    ]);
+    const csvContent = [headers, ...rows]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recent-bookings.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const refreshBookings = async () => {
+    await fetchBookings();
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      await axios.put(`${API}/${id}/approve`);
+      await refreshBookings();
+    } catch (err) {
+      window.alert('Cannot approve this booking.');
+    }
+  };
+
+  const handleReject = async (id) => {
+    const reason = window.prompt('Enter rejection reason:');
+    if (!reason) return;
+    try {
+      await axios.put(`${API}/${id}/reject`, { reason });
+      await refreshBookings();
+    } catch (err) {
+      window.alert('Cannot reject this booking.');
+    }
+  };
+
+  const handleCancel = async (id) => {
+    try {
+      await axios.put(`${API}/${id}/cancel`);
+      await refreshBookings();
+    } catch (err) {
+      window.alert('Cannot cancel this booking.');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    try {
+      await axios.delete(`${API}/${id}`);
+      await refreshBookings();
+    } catch (err) {
+      window.alert('Cannot delete this booking.');
+    }
+  };
+
+  const handleEditClick = (booking) => {
+    if (booking.status !== 'PENDING') {
+      window.alert('Only PENDING bookings can be edited!');
+      return;
+    }
+    setEditingBooking({ ...booking });
+  };
+
+  const handleEditChange = (e) => {
+    setEditingBooking({ ...editingBooking, [e.target.name]: e.target.value });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (editingBooking.startTime >= editingBooking.endTime) {
+      window.alert('End time must be after start time!');
+      return;
+    }
+    try {
+      await axios.put(`${API}/${editingBooking.id}`, editingBooking);
+      setEditingBooking(null);
+      await refreshBookings();
+    } catch (err) {
+      if (err.response && err.response.status === 409) {
+        window.alert('Conflict! This resource is already booked for this time.');
+      } else {
+        window.alert('Error updating booking.');
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -214,15 +310,26 @@ function DashboardPage() {
 
       {/* Recent Bookings */}
       <div className="chart-card full-width">
-        <h2>Recent Bookings</h2>
+        <div className="recent-bookings-header">
+          <div>
+            <h2>Recent Bookings</h2>
+            <p>Latest booking activity across the campus</p>
+          </div>
+          <div className="actions-section">
+            <span className="actions-label">Actions</span>
+            <button className="btn-export" onClick={exportRecentBookingsToCSV}>⬇ Export CSV</button>
+          </div>
+        </div>
         <table className="recent-table">
           <thead>
             <tr>
               <th>Resource</th>
               <th>User</th>
               <th>Date</th>
+              <th>Time</th>
               <th>Purpose</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -231,17 +338,79 @@ function DashboardPage() {
                 <td>{b.resourceName}</td>
                 <td>{b.userId}</td>
                 <td>{b.date}</td>
+                <td>{b.startTime} - {b.endTime}</td>
                 <td>{b.purpose}</td>
                 <td>
                   <span className={`status-badge status-${b.status?.toLowerCase()}`}>
                     {b.status}
                   </span>
                 </td>
+                <td>
+                  <div className="action-buttons dashboard-action-buttons">
+                    {b.status === 'PENDING' && (
+                      <>
+                        <button className="btn-approve" onClick={() => handleApprove(b.id)}>Approve</button>
+                        <button className="btn-reject" onClick={() => handleReject(b.id)}>Reject</button>
+                        <button className="btn-edit" onClick={() => handleEditClick(b)}>Edit</button>
+                      </>
+                    )}
+                    {b.status === 'APPROVED' && (
+                      <button className="btn-cancel" onClick={() => handleCancel(b.id)}>Cancel</button>
+                    )}
+                    <button className="btn-delete" onClick={() => handleDelete(b.id)}>Delete</button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {editingBooking && (
+        <div className="modal-overlay" onClick={() => setEditingBooking(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>✏️ Edit Booking</h2>
+              <button className="modal-close" onClick={() => setEditingBooking(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleEditSubmit}>
+                <div className="edit-form-row">
+                  <label>Resource ID</label>
+                  <input name="resourceId" value={editingBooking.resourceId} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Resource Name</label>
+                  <input name="resourceName" value={editingBooking.resourceName} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Date</label>
+                  <input name="date" type="date" value={editingBooking.date} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Start Time</label>
+                  <input name="startTime" type="time" value={editingBooking.startTime} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>End Time</label>
+                  <input name="endTime" type="time" value={editingBooking.endTime} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Purpose</label>
+                  <input name="purpose" value={editingBooking.purpose} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Attendees</label>
+                  <input name="attendees" type="number" value={editingBooking.attendees} onChange={handleEditChange} required min="1" />
+                </div>
+                <button type="submit" className="btn-submit" style={{ width: '100%', marginTop: '16px' }}>
+                  Update Booking
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
