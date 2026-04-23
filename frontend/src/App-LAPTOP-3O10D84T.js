@@ -4,7 +4,6 @@ import BookingPage from './BookingPage';
 import DashboardPage from './DashboardPage';
 import CalendarPage from './CalendarPage';
 import ResourcePage from "./ResourcePage";
-import ResourceManagementPage from "./ResourceManagementPage";
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -36,8 +35,6 @@ function App() {
                   onClick={() => setCurrentPage('bookings')}>Make a Booking</button>
                 <button className="btn-secondary"
                   onClick={() => setCurrentPage('dashboard')}>View Dashboard</button>
-                <button className="btn-primary"
-                  onClick={() => setCurrentPage('resources')}>Browse Resources</button>
               </div>
             </div>
           </section>
@@ -124,11 +121,7 @@ function App() {
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
       {currentPage === 'calendar' && <CalendarPage />}
-      {currentPage === 'resources' && <ResourcePage 
-        onNavigate={() => setCurrentPage('resource-management')} 
-        onBook={() => setCurrentPage('bookings')}
-      />}
-      {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
+      {currentPage === 'resources' && <ResourcePage />}
     </div>
   );
 }
