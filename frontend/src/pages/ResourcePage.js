@@ -294,7 +294,7 @@ function ResourcePage({ onNavigate, onBook }) {
               ♿ Accessible
             </label>
           </div>
-        </form> {/* Closing form tag */}
+        </form>
       </section>
 
       {error && <p className="error">{error}</p>}

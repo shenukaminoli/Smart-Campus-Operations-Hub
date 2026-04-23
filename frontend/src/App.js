@@ -20,6 +20,12 @@ const ROLE_COLORS = {
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [currentUser, setCurrentUser] = useState(null);
+  const [bookingPrefill, setBookingPrefill] = useState(null);
+
+  const handleStartBooking = (resource) => {
+    setBookingPrefill(resource);
+    setCurrentPage('bookings');
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -170,13 +176,13 @@ function App() {
       )}
 
       {currentPage === 'dashboard' && <DashboardPage />}
-      {currentPage === 'bookings' && <BookingPage />}
+      {currentPage === 'bookings' && <BookingPage prefill={bookingPrefill} />}
       {currentPage === 'incidents' && <IncidentPage />}
       {currentPage === 'ticket-manager' && <TicketManagerPage />}
       {currentPage === 'calendar' && <CalendarPage />}
       {currentPage === 'resources' && <ResourcePage
         onNavigate={() => setCurrentPage('resource-management')}
-        onBook={() => setCurrentPage('bookings')}
+        onBook={handleStartBooking}
       />}
       {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
     </div>
