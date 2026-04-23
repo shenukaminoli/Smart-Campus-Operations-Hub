@@ -1,4 +1,4 @@
-package com.smartcampus.backend;
+package com.smartcampus.backend.model;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

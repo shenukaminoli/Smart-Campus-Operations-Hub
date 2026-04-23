@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import './App.css';
-import BookingPage from './BookingPage';
-import DashboardPage from './DashboardPage';
-import CalendarPage from './CalendarPage';
-import IncidentPage from './IncidentPage';
-import TicketManagerPage from './TicketManagerPage';
+import BookingPage from './pages/BookingPage';
+import DashboardPage from './pages/DashboardPage';
+import CalendarPage from './pages/CalendarPage';
+import IncidentPage from './pages/IncidentPage';
+import TicketManagerPage from './pages/TicketManagerPage';
+import ResourcePage from './pages/ResourcePage';
+import ResourceManagementPage from './pages/ResourceManagementPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');

@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { createResource, deleteResource, getResources, updateResource } from "./resourceApi";
+import { createResource, deleteResource, getResources, updateResource } from "../api/resourceApi";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend 
 } from 'recharts';
-import "./ResourcePage.css";
+import "../styles/ResourcePage.css";
 
 const initialForm = {
   name: "",

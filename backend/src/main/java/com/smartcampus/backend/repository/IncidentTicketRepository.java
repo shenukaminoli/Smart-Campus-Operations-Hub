@@ -1,4 +1,5 @@
-package com.smartcampus.backend;
+package com.smartcampus.backend.repository;
+import com.smartcampus.backend.model.IncidentTicket;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;

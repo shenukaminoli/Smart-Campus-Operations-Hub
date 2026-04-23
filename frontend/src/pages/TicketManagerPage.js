@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import './TicketManagerPage.css';
+import '../styles/TicketManagerPage.css';
 
 const TICKETS_API = 'http://localhost:8081/api/tickets';
 const TECHNICIANS_API = 'http://localhost:8081/api/technicians';

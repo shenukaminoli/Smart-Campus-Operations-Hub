@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { createResource, deleteResource, getResources, updateResource } from "./resourceApi";
-import "./ResourcePage.css";
+import { createResource, deleteResource, getResources, updateResource } from "../api/resourceApi";
+import "../styles/ResourcePage.css";
 
 function ResourcePage({ onNavigate, onBook }) {
   const [resources, setResources] = useState([]);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './BookingPage.css';
+import '../styles/BookingPage.css';
 
 const API = 'http://localhost:8081/api/bookings';
 

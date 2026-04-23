@@ -1,4 +1,6 @@
-package com.smartcampus.backend;
+package com.smartcampus.backend.service;
+import com.smartcampus.backend.model.Technician;
+import com.smartcampus.backend.repository.TechnicianRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
