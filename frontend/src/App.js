@@ -26,7 +26,6 @@ function App() {
           <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
           <a href="#resources" onClick={() => setCurrentPage('resources')}>Resources</a>
           <a href="#login" className="btn-login">Login</a>
-          <a href="#admin-login" className="btn-admin-login">Admin Login</a>
         </div>
       </nav>
 

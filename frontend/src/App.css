@@ -50,20 +50,6 @@
   color: #003366 !important;
 }
 
-.btn-admin-login {
-  background-color: #ffffff;
-  padding: 8px 22px;
-  border-radius: 20px;
-  color: #003366 !important;
-  font-weight: 700 !important;
-  border: 2px solid #FFB800;
-}
-
-.btn-admin-login:hover {
-  background-color: #fff6da;
-  color: #003366 !important;
-}
-
 /* HERO */
 .hero {
   background: linear-gradient(135deg, #003366 0%, #004d99 50%, #0066cc 100%);
