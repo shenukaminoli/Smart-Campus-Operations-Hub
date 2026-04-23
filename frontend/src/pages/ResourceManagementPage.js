@@ -70,6 +70,16 @@ function ResourceManagementPage({ onNavigate }) {
       return;
     }
 
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = resources.some(r => 
+      r.name.toLowerCase().trim() === form.name.toLowerCase().trim() && r.id !== editId
+    );
+
+    if (isDuplicate) {
+      setError(`Validation Error: A resource named "${form.name.trim()}" already exists.`);
+      return;
+    }
+
     const payload = {
       ...form,
       capacity: Number(form.capacity),
