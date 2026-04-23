@@ -333,6 +333,72 @@
   line-height: 1.6;
 }
 
+/* CONTACT */
+.contact {
+  padding: 90px 60px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,184,0,0.10), transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(0,51,102,0.10), transparent 45%),
+    #ffffff;
+  text-align: center;
+}
+
+.contact h2 {
+  font-size: 36px;
+  margin-bottom: 12px;
+  color: #003366;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.contact p.subtitle {
+  color: #5e6b7a;
+  font-size: 16px;
+  margin-bottom: 52px;
+}
+
+.contact .card {
+  border-top: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.contact .card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,184,0,0.18), rgba(0,51,102,0.06));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.contact .card:hover::before {
+  opacity: 1;
+}
+
+.contact .card h3 {
+  font-size: 18px;
+}
+
+.contact .card p {
+  font-size: 14px;
+}
+
+.contact .card a {
+  color: #003366;
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 2px solid rgba(255,184,0,0.55);
+  padding-bottom: 2px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.contact .card a:hover {
+  color: #0a4ea3;
+  border-color: rgba(10,78,163,0.35);
+}
+
 /* FOOTER */
 .footer {
   background-color: #002244;

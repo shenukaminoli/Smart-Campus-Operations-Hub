@@ -182,6 +182,36 @@ function App() {
             </div>
           </section>
 
+          <section className="contact">
+            <h2>Get in touch</h2>
+            <p className="subtitle">Questions, feedback, or support—here’s how to reach SLIIT.</p>
+            <div className="feature-cards">
+              <div className="card">
+                <div className="card-icon">📞</div>
+                <h3>Phone</h3>
+                <p>
+                  <a href="tel:+94117544801">+94 11 754 4801</a>
+                </p>
+              </div>
+              <div className="card">
+                <div className="card-icon">✉️</div>
+                <h3>Email</h3>
+                <p>
+                  <a href="mailto:info@sliit.lk">info@sliit.lk</a>
+                </p>
+              </div>
+              <div className="card">
+                <div className="card-icon">📍</div>
+                <h3>Location</h3>
+                <p>
+                  SLIIT Malabe Campus,<br />
+                  New Kandy Road,<br />
+                  Malabe.
+                </p>
+              </div>
+            </div>
+          </section>
+
           <footer className="footer">
             <p>© 2026 <span>Smart Campus Operations Hub</span> — SLIIT Faculty of Computing</p>
           </footer>
