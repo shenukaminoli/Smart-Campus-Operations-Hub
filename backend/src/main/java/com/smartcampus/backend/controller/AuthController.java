@@ -1,0 +1,85 @@
+package com.smartcampus.backend.controller;
+
+import com.smartcampus.backend.model.User;
+import com.smartcampus.backend.security.JwtUtil;
+import com.smartcampus.backend.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
+public class AuthController {
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody User user, BindingResult result) {
+        if (result.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            result.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+            return ResponseEntity.badRequest().body(errors);
+        }
+        try {
+            User created = userService.createUser(user);
+            created.setPassword(null);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String password = body.get("password");
+        if (email == null || password == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email and password are required"));
+        }
+        Optional<User> userOpt = userService.authenticateUser(email, password);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid email or password"));
+        }
+        User user = userOpt.get();
+        if (!user.isActive()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Account is deactivated"));
+        }
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
+        user.setPassword(null);
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("user", user);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No token provided"));
+        }
+        String token = authHeader.substring(7);
+        if (!jwtUtil.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid token"));
+        }
+        String userId = jwtUtil.extractUserId(token);
+        Optional<User> userOpt = userService.getUserById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+        }
+        User user = userOpt.get();
+        user.setPassword(null);
+        return ResponseEntity.ok(user);
+    }
+}
