@@ -62,14 +62,6 @@ function App() {
     setCurrentPage('bookings');
   };
 
-  if (!currentUser) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
-  }
-
-  const roleStyle = ROLE_COLORS[currentUser.role] || ROLE_COLORS.STUDENT;
-  const isManager = currentUser.role === 'MANAGER';
-  const onManagerPage = isManager && (currentPage === 'ticket-manager' || currentPage === 'technician-management');
-
   const role = (currentUser?.role || '').toUpperCase();
   const displayName = useMemo(() => (
     currentUser?.fullName || currentUser?.name || currentUser?.username || 'there'
@@ -119,6 +111,13 @@ function App() {
       return hay.includes(q);
     });
   }, [resourceQuery, resourcesPreview]);
+
+  if (!currentUser) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  const roleStyle = ROLE_COLORS[currentUser?.role] || ROLE_COLORS.STUDENT;
+  const isManager = currentUser?.role === 'MANAGER';
 
   return (
     <div className="app">
