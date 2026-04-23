@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import BookingPage from './pages/BookingPage';
 import DashboardPage from './pages/DashboardPage';
@@ -7,9 +7,49 @@ import IncidentPage from './pages/IncidentPage';
 import TicketManagerPage from './pages/TicketManagerPage';
 import ResourcePage from './pages/ResourcePage';
 import ResourceManagementPage from './pages/ResourceManagementPage';
+import LoginPage from './pages/LoginPage';
+import { logoutUser } from './api/authApi';
+
+const ROLE_COLORS = {
+  ADMIN:      { background: '#fce4ec', color: '#c62828' },
+  STAFF:      { background: '#e3f2fd', color: '#1565c0' },
+  STUDENT:    { background: '#e8f5e9', color: '#2e7d32' },
+  TECHNICIAN: { background: '#fff3e0', color: '#e65100' },
+};
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    if (stored && token) {
+      try {
+        setCurrentUser(JSON.parse(stored));
+      } catch {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    }
+  }, []);
+
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    setCurrentPage('home');
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setCurrentUser(null);
+    setCurrentPage('home');
+  };
+
+  if (!currentUser) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  const roleStyle = ROLE_COLORS[currentUser.role] || ROLE_COLORS.STUDENT;
 
   return (
     <div className="app">
@@ -25,7 +65,11 @@ function App() {
           <a href="#ticket-manager" onClick={() => setCurrentPage('ticket-manager')}>Ticket Manager</a>
           <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
           <a href="#resources" onClick={() => setCurrentPage('resources')}>Resources</a>
-          <a href="#login" className="btn-login">Login</a>
+        </div>
+        <div className="nav-user">
+          <span className="nav-username">{currentUser.fullName}</span>
+          <span className="nav-role-badge" style={roleStyle}>{currentUser.role}</span>
+          <button className="btn-logout" onClick={handleLogout}>Logout</button>
         </div>
       </nav>
 
@@ -130,8 +174,8 @@ function App() {
       {currentPage === 'incidents' && <IncidentPage />}
       {currentPage === 'ticket-manager' && <TicketManagerPage />}
       {currentPage === 'calendar' && <CalendarPage />}
-      {currentPage === 'resources' && <ResourcePage 
-        onNavigate={() => setCurrentPage('resource-management')} 
+      {currentPage === 'resources' && <ResourcePage
+        onNavigate={() => setCurrentPage('resource-management')}
         onBook={() => setCurrentPage('bookings')}
       />}
       {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
