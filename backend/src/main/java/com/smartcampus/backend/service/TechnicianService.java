@@ -38,7 +38,8 @@ public class TechnicianService {
         existing.setEmail(updated.getEmail());
         existing.setPhone(updated.getPhone());
         existing.setSpecialization(updated.getSpecialization());
-        existing.setActive(updated.isActive());
+        existing.setAvailable(updated.getAvailable());
+        existing.setActive(updated.getActive());
         return technicianRepository.save(existing);
     }
 
