@@ -1,4 +1,6 @@
-package com.smartcampus.backend;
+package com.smartcampus.backend.service;
+import com.smartcampus.backend.model.Booking;
+import com.smartcampus.backend.repository.BookingRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;

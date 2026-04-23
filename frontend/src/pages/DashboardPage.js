@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
-import './DashboardPage.css';
+import '../styles/DashboardPage.css';
 
 const API = 'http://localhost:8081/api/bookings';
 

@@ -1,4 +1,6 @@
-package com.smartcampus.backend;
+package com.smartcampus.backend.controller;
+import com.smartcampus.backend.model.Booking;
+import com.smartcampus.backend.service.BookingService;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
