@@ -7,12 +7,15 @@ function ResourcePage({ onNavigate, onBook }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const [copyToast, setCopyToast] = useState("");
+  const [qrResource, setQrResource] = useState(null);
   const [filters, setFilters] = useState({
     type: "",
     minCapacity: "",
     location: "",
     status: "",
     sortBy: "name",
+    hasAC: false,
   });
 
   const fetchResources = async () => {
@@ -39,16 +42,32 @@ function ResourcePage({ onNavigate, onBook }) {
     fetchResources();
   };
 
+  const copyToClipboard = (resource) => {
+    const text = `Check out this resource at Smart Campus: ${resource.name} (${resource.type}) at ${resource.location}. Capacity: ${resource.capacity}.`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopyToast(`Copied ${resource.name} to clipboard!`);
+      setTimeout(() => setCopyToast(""), 3000);
+    });
+  };
+
   // Local filtering logic for immediate feedback
   const filteredByKeyword = resources.filter((r) => {
     const q = keyword.toLowerCase().trim();
-    if (!q) return true;
-    return (
+    const matchesKeyword = !q || 
       (r.name || "").toLowerCase().includes(q) ||
       (r.type || "").toLowerCase().includes(q) ||
-      (r.location || "").toLowerCase().includes(q)
-    );
+      (r.location || "").toLowerCase().includes(q);
+
+    // Logic for mock amenities filtering
+    const matchesAC = !filters.hasAC || r.capacity > 20; // Example logic
+    
+    return matchesKeyword && matchesAC;
   });
+
+  const generateQrUrl = (resource) => {
+    const data = encodeURIComponent(`Smart Campus Resource: ${resource.name}\nType: ${resource.type}\nLocation: ${resource.location}`);
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${data}`;
+  };
 
   // Calculate stats for the dashboard
   const activeCount = resources.filter((r) => r.status === "ACTIVE").length;
@@ -56,6 +75,25 @@ function ResourcePage({ onNavigate, onBook }) {
 
   return (
     <div className="resource-page">
+      {copyToast && (
+        <div className="share-toast">{copyToast}</div>
+      )}
+
+      {qrResource && (
+        <div className="modal-overlay" onClick={() => setQrResource(null)}>
+          <div className="qr-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Resource QR Code</h2>
+              <button className="modal-close" onClick={() => setQrResource(null)}>×</button>
+            </div>
+            <div className="modal-body" style={{ textAlign: 'center' }}>
+              <p style={{ marginBottom: '15px', color: '#666' }}>Scan to view <b>{qrResource.name}</b> info on mobile</p>
+              <img src={generateQrUrl(qrResource)} alt="QR Code" className="qr-image" />
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="resource-header">
         <div>
           <h2>Campus Resource Catalogue</h2>
@@ -118,6 +156,17 @@ function ResourcePage({ onNavigate, onBook }) {
             <option value="capacity">Sort by Capacity</option>
           </select>
 
+          <div className="amenity-toggles">
+            <label className={`amenity-pill ${filters.hasAC ? 'active' : ''}`}>
+              <input 
+                type="checkbox" 
+                checked={filters.hasAC} 
+                onChange={(e) => setFilters({...filters, hasAC: e.target.checked})} 
+              />
+              ❄️ Air Conditioned
+            </label>
+          </div>
+
           <button type="submit" className="btn-primary-action">Apply Filters</button>
         </form>
 
@@ -141,7 +190,19 @@ function ResourcePage({ onNavigate, onBook }) {
         )}
         {!loading && filteredByKeyword.map((r) => (
           <div className="resource-card" key={r.id}>
-            <h3>{r.name}</h3>
+            <div className="card-header-flex">
+              <h3>{r.name}</h3>
+              <button 
+                className="btn-share" 
+                onClick={() => copyToClipboard(r)}
+                title="Share Resource"
+              >🔗</button>
+              <button 
+                className="btn-share" 
+                onClick={() => setQrResource(r)}
+                title="View QR Code"
+              >🔗</button>
+            </div>
             <p><b>Type:</b> {r.type}</p>
             <p><b>Capacity:</b> {r.capacity}</p>
             <p><b>Location:</b> {r.location}</p>

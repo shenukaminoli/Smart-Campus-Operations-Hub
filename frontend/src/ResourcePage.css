@@ -148,6 +148,124 @@
   font-weight: 600;
 }
 
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.btn-share {
+  background: #f0f4f8;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.qr-modal-card {
+  background: white;
+  border-radius: 16px;
+  width: 320px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 51, 102, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  background: #003366;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  color: #FFB800;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.qr-image {
+  border: 8px solid white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-share:hover {
+  background: #FFB800;
+}
+
+.share-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #003366;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  font-weight: 600;
+  animation: slideUpFade 0.3s ease;
+}
+
+@keyframes slideUpFade {
+  from { bottom: 10px; opacity: 0; }
+  to { bottom: 30px; opacity: 1; }
+}
+
+.amenity-toggles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.amenity-pill {
+  background: #f0f4f8;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.amenity-pill.active {
+  background: #e1effe;
+  border-color: #003366;
+  color: #003366;
+  font-weight: 700;
+}
+
+.amenity-pill input { display: none; }
+
 .resource-grid {
   display: grid;
   gap: 20px;
