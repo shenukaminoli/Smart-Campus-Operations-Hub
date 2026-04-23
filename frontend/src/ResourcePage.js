@@ -10,9 +10,6 @@ function ResourcePage({ onNavigate, onBook }) {
   const [copyToast, setCopyToast] = useState("");
   const [qrResource, setQrResource] = useState(null);
   const [favorites, setFavorites] = useState(() => JSON.parse(localStorage.getItem('fav-resources') || '[]'));
-  const [showReportIssueModal, setShowReportIssueModal] = useState(false);
-  const [resourceToReport, setResourceToReport] = useState(null);
-  const [issueDescription, setIssueDescription] = useState('');
   const [filters, setFilters] = useState({
     type: "",
     minCapacity: "",
@@ -46,7 +43,7 @@ function ResourcePage({ onNavigate, onBook }) {
   };
 
   useEffect(() => {
-    fetchResources();
+    fetchResources(); // Initial fetch, and subsequent fetches are triggered by handleFilterSubmit
   }, [filters]); // Re-fetch when filters change
 
   useEffect(() => {
@@ -161,25 +158,6 @@ function ResourcePage({ onNavigate, onBook }) {
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${data}`;
   };
 
-  const handleReportIssue = (resource) => {
-    setResourceToReport(resource);
-    setShowReportIssueModal(true);
-  };
-
-  const submitIssueReport = () => {
-    if (issueDescription.trim() && resourceToReport) {
-      console.log(`Reporting issue for ${resourceToReport.name}: ${issueDescription}`);
-      // In a real app, you'd send this to a backend API
-      setCopyToast(`Issue reported for ${resourceToReport.name}!`); // Reusing toast for feedback
-      setTimeout(() => setCopyToast(""), 3000);
-      setIssueDescription('');
-      setResourceToReport(null);
-      setShowReportIssueModal(false);
-    } else {
-      alert("Please describe the issue.");
-    }
-  };
-
   // Calculate stats for the dashboard
   const activeCount = resources.filter((r) => r.status === "ACTIVE").length;
   const totalCapacity = resources.reduce((sum, r) => sum + (Number(r.capacity) || 0), 0);
@@ -200,29 +178,6 @@ function ResourcePage({ onNavigate, onBook }) {
             <div className="modal-body" style={{ textAlign: 'center' }}>
               <p style={{ marginBottom: '15px', color: '#666' }}>Scan to view <b>{qrResource.name}</b> info on mobile</p>
               <img src={generateQrUrl(qrResource)} alt="QR Code" className="qr-image" />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showReportIssueModal && resourceToReport && (
-        <div className="modal-overlay" onClick={() => setShowReportIssueModal(false)}>
-          <div className="report-issue-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Report Issue for {resourceToReport.name}</h2>
-              <button className="modal-close" onClick={() => setShowReportIssueModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <textarea
-                placeholder="Describe the issue (e.g., projector not working, room dirty, etc.)"
-                value={issueDescription}
-                onChange={(e) => setIssueDescription(e.target.value)}
-                rows="5"
-                className="issue-textarea"
-              ></textarea>
-              <button className="btn-primary-action" onClick={submitIssueReport} style={{ width: '100%', marginTop: '15px' }}>
-                Submit Report
-              </button>
             </div>
           </div>
         </div>
@@ -324,19 +279,7 @@ function ResourcePage({ onNavigate, onBook }) {
               ♿ Accessible
             </label>
           </div>
-
-          <button type="submit" className="btn-primary-action">Apply Filters</button>
-        </form>
-
-        <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
-          <input
-            className="keyword-search"
-            style={{ marginTop: 0 }}
-            placeholder="Quick search by keywords in current results..."
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-          />
-        </div>
+        </form> {/* Closing form tag */}
       </section>
 
       {error && <p className="error">{error}</p>}
@@ -359,10 +302,10 @@ function ResourcePage({ onNavigate, onBook }) {
                   onClick={() => toggleFavorite(r.id)}
                   title="Favorite"
                 >
-                  {favorites.includes(r.id) ? '⭐' : '☆'}
+                  {favorites.includes(r.id) ? '★' : '☆'}
                 </button>
-                <button className="btn-icon-alt" onClick={() => copyToClipboard(r)} title="Copy Info">📋</button>
-                <button className="btn-icon-alt" onClick={() => setQrResource(r)} title="View QR">📱</button>
+                <button className="btn-utility" onClick={() => copyToClipboard(r)} title="Copy Info">📋</button>
+                <button className="btn-utility" onClick={() => setQrResource(r)} title="View QR">📱</button>
               </div>
             </div>
 
@@ -398,7 +341,6 @@ function ResourcePage({ onNavigate, onBook }) {
             >
               Book Now
             </button>
-            <button className="btn-report-issue" onClick={() => handleReportIssue(r)}>Report Issue</button>
           </div>
         ))}
       </div>
