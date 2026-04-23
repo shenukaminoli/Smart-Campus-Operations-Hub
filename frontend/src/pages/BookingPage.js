@@ -119,100 +119,6 @@ function BookingPage() {
     }
   };
 
-  const handleApprove = async (id) => {
-    try {
-      await axios.put(`${API}/${id}/approve`);
-      showToast('Booking approved!', 'success');
-      fetchBookings();
-    } catch (err) {
-      showToast('Cannot approve this booking.', 'error');
-    }
-  };
-
-  const handleReject = async (id) => {
-    const reason = prompt('Enter rejection reason:');
-    if (!reason) return;
-    try {
-      await axios.put(`${API}/${id}/reject`, { reason });
-      showToast('Booking rejected!', 'success');
-      fetchBookings();
-    } catch (err) {
-      showToast('Cannot reject this booking.', 'error');
-    }
-  };
-
-  const handleCancel = async (id) => {
-    try {
-      await axios.put(`${API}/${id}/cancel`);
-      showToast('Booking cancelled!', 'success');
-      fetchBookings();
-    } catch (err) {
-      showToast('Cannot cancel this booking.', 'error');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this booking?')) return;
-    try {
-      await axios.delete(`${API}/${id}`);
-      showToast('Booking deleted!', 'success');
-      fetchBookings();
-    } catch (err) {
-      showToast('Cannot delete this booking.', 'error');
-    }
-  };
-
-  // Edit booking
-  const handleEditClick = (booking) => {
-    if (booking.status !== 'PENDING') {
-      showToast('Only PENDING bookings can be edited!', 'error');
-      return;
-    }
-    setEditingBooking({ ...booking });
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (editingBooking.startTime >= editingBooking.endTime) {
-      showToast('End time must be after start time!', 'error');
-      return;
-    }
-    try {
-      await axios.put(`${API}/${editingBooking.id}`, editingBooking);
-      showToast('Booking updated successfully!', 'success');
-      setEditingBooking(null);
-      fetchBookings();
-    } catch (err) {
-      if (err.response && err.response.status === 409) {
-        showToast('Conflict! This resource is already booked for this time.', 'error');
-      } else {
-        showToast('Error updating booking.', 'error');
-      }
-    }
-  };
-
-  // Export to CSV
-  const exportToCSV = () => {
-    const headers = ['Resource', 'User', 'Date', 'Start Time',
-      'End Time', 'Purpose', 'Attendees', 'Status', 'Rejection Reason'];
-    const rows = filteredBookings.map(b => [
-      b.resourceName, b.userId, b.date, b.startTime,
-      b.endTime, b.purpose, b.attendees, b.status,
-      b.rejectionReason || ''
-    ]);
-    const csvContent = [headers, ...rows]
-      .map(row => row.join(','))
-      .join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'bookings.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Bookings exported successfully!', 'success');
-  };
-
   const getStatusClass = (status) => {
     switch (status) {
       case 'PENDING': return 'status-pending';
@@ -352,7 +258,6 @@ function BookingPage() {
       <div className="bookings-table-container">
         <h2>📋 {viewMode === 'mine' ? 'My Bookings' : 'All Bookings'}
           <span className="booking-count">{filteredBookings.length} records</span>
-          <button className="btn-export" onClick={exportToCSV}>⬇ Export CSV</button>
         </h2>
 
         {loading ? (
@@ -384,7 +289,6 @@ function BookingPage() {
                 <th>Attendees</th>
                 <th>Status</th>
                 <th>Reason</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -404,89 +308,12 @@ function BookingPage() {
                   <td className="rejection-reason">
                     {booking.rejectionReason || '-'}
                   </td>
-                  <td className="action-buttons">
-                    {booking.status === 'PENDING' && (
-                      <>
-                        <button className="btn-approve"
-                          onClick={() => handleApprove(booking.id)}>Approve</button>
-                        <button className="btn-reject"
-                          onClick={() => handleReject(booking.id)}>Reject</button>
-                        <button className="btn-edit"
-                          onClick={() => handleEditClick(booking)}>Edit</button>
-                      </>
-                    )}
-                    {booking.status === 'APPROVED' && (
-                      <button className="btn-cancel"
-                        onClick={() => handleCancel(booking.id)}>Cancel</button>
-                    )}
-                    <button className="btn-delete"
-                      onClick={() => handleDelete(booking.id)}>Delete</button>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
-
-      {/* Edit Modal */}
-      {editingBooking && (
-        <div className="modal-overlay" onClick={() => setEditingBooking(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>✏️ Edit Booking</h2>
-              <button className="modal-close"
-                onClick={() => setEditingBooking(null)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <form onSubmit={handleEditSubmit}>
-                <div className="edit-form-row">
-                  <label>Resource ID</label>
-                  <input name="resourceId" value={editingBooking.resourceId}
-                    onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Resource Name</label>
-                  <input name="resourceName" value={editingBooking.resourceName}
-                    onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Date</label>
-                  <input name="date" type="date" value={editingBooking.date}
-                    onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Start Time</label>
-                  <input name="startTime" type="time"
-                    value={editingBooking.startTime}
-                    onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>End Time</label>
-                  <input name="endTime" type="time"
-                    value={editingBooking.endTime}
-                    onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Purpose</label>
-                  <input name="purpose" value={editingBooking.purpose}
-                    onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Attendees</label>
-                  <input name="attendees" type="number"
-                    value={editingBooking.attendees}
-                    onChange={handleEditChange} required min="1" />
-                </div>
-                <button type="submit" className="btn-submit"
-                  style={{ width: '100%', marginTop: '16px' }}>
-                  Update Booking
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
