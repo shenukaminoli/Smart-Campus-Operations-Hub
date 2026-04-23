@@ -4,6 +4,16 @@ import '../styles/IncidentPage.css';
 
 const API = 'http://localhost:8081/api/tickets';
 const ALLOWED_STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED'];
+const MAX_ATTACHMENTS = 3;
+const CATEGORY_OPTIONS = [
+  'ELECTRICAL',
+  'NETWORK',
+  'HVAC',
+  'PLUMBING',
+  'IT_SUPPORT',
+  'SECURITY',
+  'GENERAL_MAINTENANCE'
+];
 
 const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -12,7 +22,7 @@ const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file);
 });
 
-function IncidentPage() {
+function IncidentPage({ currentUser }) {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -21,11 +31,12 @@ function IncidentPage() {
 
   const [form, setForm] = useState({
     resourceOrLocation: '',
-    category: '',
+    category: 'GENERAL_MAINTENANCE',
+    subject: '',
     description: '',
     priority: 'MEDIUM',
     preferredContact: '',
-    reportedBy: ''
+    reportedBy: currentUser?.email || ''
   });
   const [attachmentFiles, setAttachmentFiles] = useState([]);
 
@@ -37,13 +48,14 @@ function IncidentPage() {
   const fetchTickets = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API);
+      const reporter = encodeURIComponent(currentUser?.email || '');
+      const res = await axios.get(`${API}/reporter/${reporter}`);
       setTickets(res.data);
     } catch (err) {
       showToast('Error fetching incident tickets', 'error');
     }
     setLoading(false);
-  }, []);
+  }, [currentUser?.email]);
 
   useEffect(() => {
     fetchTickets();
@@ -64,6 +76,7 @@ function IncidentPage() {
       const term = search.toLowerCase();
       const matchesSearch = !term
         || ticket.resourceOrLocation?.toLowerCase().includes(term)
+        || ticket.subject?.toLowerCase().includes(term)
         || ticket.category?.toLowerCase().includes(term)
         || ticket.reportedBy?.toLowerCase().includes(term)
         || ticket.assignedTechnicianId?.toLowerCase().includes(term);
@@ -76,12 +89,40 @@ function IncidentPage() {
   };
 
   const handleAttachmentChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 3) {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
+
+    if (attachmentFiles.length >= MAX_ATTACHMENTS) {
       showToast('Only up to 3 attachments are allowed', 'error');
+      setAttachmentFiles([]);
+      e.target.value = '';
       return;
     }
-    setAttachmentFiles(files);
+
+    const merged = [...attachmentFiles];
+    selectedFiles.forEach((file) => {
+      const exists = merged.some((existing) => (
+        existing.name === file.name
+        && existing.size === file.size
+        && existing.lastModified === file.lastModified
+      ));
+      if (!exists) {
+        merged.push(file);
+      }
+    });
+
+    if (merged.length > MAX_ATTACHMENTS) {
+      showToast('Only up to 3 attachments are allowed', 'error');
+      setAttachmentFiles([]);
+      e.target.value = '';
+      return;
+    }
+    setAttachmentFiles(merged);
+    e.target.value = '';
+  };
+
+  const removeAttachment = (indexToRemove) => {
+    setAttachmentFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSubmit = async (e) => {
@@ -90,7 +131,7 @@ function IncidentPage() {
       showToast('Add at least one attachment', 'error');
       return;
     }
-    if (attachmentFiles.length > 3) {
+    if (attachmentFiles.length > MAX_ATTACHMENTS) {
       showToast('Only up to 3 attachments are allowed', 'error');
       return;
     }
@@ -111,11 +152,12 @@ function IncidentPage() {
       showToast('Incident ticket created successfully', 'success');
       setForm({
         resourceOrLocation: '',
-        category: '',
+        category: 'GENERAL_MAINTENANCE',
+        subject: '',
         description: '',
         priority: 'MEDIUM',
         preferredContact: '',
-        reportedBy: ''
+        reportedBy: currentUser?.email || ''
       });
       setAttachmentFiles([]);
       fetchTickets();
@@ -136,6 +178,66 @@ function IncidentPage() {
     }
   };
 
+  const jumpToStatus = (status) => {
+    setStatusFilter(status);
+    const section = document.getElementById('incident-tickets-section');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const canModifyComment = (comment) => {
+    const role = currentUser?.role?.toUpperCase();
+    return comment.authorEmail === currentUser?.email
+      || ['ADMIN', 'STAFF', 'MANAGER', 'TECHNICIAN'].includes(role);
+  };
+
+  const handleAddComment = async (ticketId) => {
+    const content = window.prompt('Enter your comment');
+    if (!content) return;
+    try {
+      await axios.post(`${API}/${ticketId}/comments`, {
+        requesterEmail: currentUser?.email,
+        requesterName: currentUser?.fullName,
+        content
+      });
+      showToast('Comment added', 'success');
+      fetchTickets();
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Unable to add comment', 'error');
+    }
+  };
+
+  const handleEditComment = async (ticketId, comment) => {
+    const content = window.prompt('Edit comment', comment.content);
+    if (!content) return;
+    try {
+      await axios.put(`${API}/${ticketId}/comments/${comment.id}`, {
+        requesterEmail: currentUser?.email,
+        requesterRole: currentUser?.role,
+        content
+      });
+      showToast('Comment updated', 'success');
+      fetchTickets();
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Unable to update comment', 'error');
+    }
+  };
+
+  const handleDeleteComment = async (ticketId, commentId) => {
+    if (!window.confirm('Delete this comment?')) return;
+    try {
+      await axios.delete(`${API}/${ticketId}/comments/${commentId}`, {
+        data: {
+          requesterEmail: currentUser?.email,
+          requesterRole: currentUser?.role
+        }
+      });
+      showToast('Comment deleted', 'success');
+      fetchTickets();
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Unable to delete comment', 'error');
+    }
+  };
+
   return (
     <div className="incident-page">
       {toast && (
@@ -150,12 +252,12 @@ function IncidentPage() {
       </p>
 
       <div className="stats-cards">
-        <div className="stat-card stat-total"><h3>{stats.total}</h3><p>Total</p></div>
-        <div className="stat-card stat-open"><h3>{stats.open}</h3><p>Open</p></div>
-        <div className="stat-card stat-progress"><h3>{stats.inProgress}</h3><p>In Progress</p></div>
-        <div className="stat-card stat-resolved"><h3>{stats.resolved}</h3><p>Resolved</p></div>
-        <div className="stat-card stat-closed"><h3>{stats.closed}</h3><p>Closed</p></div>
-        <div className="stat-card stat-rejected"><h3>{stats.rejected}</h3><p>Rejected</p></div>
+        <button className={`incident-stat-card stat-total ${statusFilter === 'ALL' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('ALL')}><h3>{stats.total}</h3><p>Total</p></button>
+        <button className={`incident-stat-card stat-open ${statusFilter === 'OPEN' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('OPEN')}><h3>{stats.open}</h3><p>Open</p></button>
+        <button className={`incident-stat-card stat-progress ${statusFilter === 'IN_PROGRESS' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('IN_PROGRESS')}><h3>{stats.inProgress}</h3><p>In Progress</p></button>
+        <button className={`incident-stat-card stat-resolved ${statusFilter === 'RESOLVED' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('RESOLVED')}><h3>{stats.resolved}</h3><p>Resolved</p></button>
+        <button className={`incident-stat-card stat-closed ${statusFilter === 'CLOSED' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('CLOSED')}><h3>{stats.closed}</h3><p>Closed</p></button>
+        <button className={`incident-stat-card stat-rejected ${statusFilter === 'REJECTED' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('REJECTED')}><h3>{stats.rejected}</h3><p>Rejected</p></button>
       </div>
 
       <div className="incident-form-container">
@@ -169,10 +271,24 @@ function IncidentPage() {
               onChange={handleChange}
               required
             />
-            <input
+            <select
               name="category"
-              placeholder="Category (Electrical, Network, Facility...)"
               value={form.category}
+              onChange={handleChange}
+              required
+            >
+              {CATEGORY_OPTIONS.map((category) => (
+                <option key={category} value={category}>
+                  {category.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-row">
+            <input
+              name="subject"
+              placeholder="Subject"
+              value={form.subject}
               onChange={handleChange}
               required
             />
@@ -195,13 +311,48 @@ function IncidentPage() {
           <div className="form-row">
             <input
               name="reportedBy"
-              placeholder="Reported By (user ID)"
               value={form.reportedBy}
-              onChange={handleChange}
-              required
+              readOnly
+              title="Automatically taken from logged in account"
             />
-            <input type="file" multiple onChange={handleAttachmentChange} />
+            <div className="file-input-section">
+              <input
+                id="incident-attachments-input"
+                className="hidden-file-input"
+                type="file"
+                multiple
+                disabled={attachmentFiles.length >= MAX_ATTACHMENTS}
+                onChange={handleAttachmentChange}
+              />
+              <label
+                htmlFor="incident-attachments-input"
+                className={`custom-file-btn ${attachmentFiles.length >= MAX_ATTACHMENTS ? 'custom-file-btn-disabled' : ''}`}
+                aria-disabled={attachmentFiles.length >= MAX_ATTACHMENTS}
+              >
+                Choose Files
+              </label>
+              <small className="attachment-limit-note">only 3 attachments can submit</small>
+              <small className="attachment-counter">
+                Attachments selected: {attachmentFiles.length} / {MAX_ATTACHMENTS}
+              </small>
+            </div>
           </div>
+          {attachmentFiles.length > 0 && (
+            <div className="selected-attachments">
+              {attachmentFiles.map((file, index) => (
+                <div key={`${file.name}-${file.size}-${file.lastModified}`} className="selected-attachment-item">
+                  <span>{file.name}</span>
+                  <button
+                    type="button"
+                    className="btn-remove-attachment"
+                    onClick={() => removeAttachment(index)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="form-row">
             <textarea
               name="description"
@@ -234,7 +385,7 @@ function IncidentPage() {
         </select>
       </div>
 
-      <div className="tickets-table-container">
+      <div id="incident-tickets-section" className="tickets-table-container">
         <h2>📋 Incident Tickets <span className="ticket-count">{filtered.length} records</span></h2>
         {loading ? (
           <div className="loading"><div className="spinner"></div><p>Loading tickets...</p></div>
@@ -246,12 +397,14 @@ function IncidentPage() {
               <tr>
                 <th>Location</th>
                 <th>Category</th>
+                <th>Subject</th>
                 <th>Priority</th>
                 <th>Reporter</th>
                 <th>Technician</th>
                 <th>Status</th>
                 <th>Attachments</th>
                 <th>Notes</th>
+                <th>Comments</th>
               </tr>
             </thead>
             <tbody>
@@ -259,6 +412,7 @@ function IncidentPage() {
                 <tr key={ticket.id}>
                   <td>{ticket.resourceOrLocation}</td>
                   <td>{ticket.category}</td>
+                  <td>{ticket.subject || '-'}</td>
                   <td>{ticket.priority}</td>
                   <td>{ticket.reportedBy}</td>
                   <td>{ticket.assignedTechnicianId || '-'}</td>
@@ -276,6 +430,23 @@ function IncidentPage() {
                   </td>
                   <td className="notes">
                     {ticket.resolutionNote || ticket.rejectionReason || '-'}
+                  </td>
+                  <td>
+                    <div className="comments-box">
+                      {(ticket.comments || []).map((comment) => (
+                        <div key={comment.id} className="comment-item">
+                          <div className="comment-meta">{comment.authorName || comment.authorEmail}</div>
+                          <div className="comment-text">{comment.content}</div>
+                          {canModifyComment(comment) && (
+                            <div className="comment-actions">
+                              <button type="button" onClick={() => handleEditComment(ticket.id, comment)}>Edit</button>
+                              <button type="button" onClick={() => handleDeleteComment(ticket.id, comment.id)}>Delete</button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      <button type="button" className="btn-comment" onClick={() => handleAddComment(ticket.id)}>+ Add Comment</button>
+                    </div>
                   </td>
                 </tr>
               ))}

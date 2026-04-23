@@ -48,7 +48,7 @@
   flex-wrap: wrap;
 }
 
-.stat-card {
+.incident-stat-card {
   flex: 1;
   min-width: 130px;
   background: white;
@@ -57,19 +57,33 @@
   text-align: center;
   box-shadow: 0 4px 15px rgba(0, 51, 102, 0.08);
   border-top: 4px solid #003366;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.stat-card h3 {
+.incident-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 51, 102, 0.15);
+}
+
+.incident-stat-card h3 {
   font-size: 32px;
   font-weight: 800;
   margin: 0 0 4px;
 }
 
-.stat-card p {
+.incident-stat-card p {
   margin: 0;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
+}
+
+.incident-stat-active {
+  outline: 3px solid rgba(0, 102, 204, 0.22);
 }
 
 .stat-total { border-top-color: #003366; color: #003366; }
@@ -129,6 +143,91 @@
   color: #667;
   display: block;
   margin-bottom: 12px;
+}
+
+.attachment-counter {
+  display: block;
+  margin-top: 8px;
+  color: #003366;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.file-input-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.custom-file-btn {
+  display: inline-block;
+  width: fit-content;
+  border: 1px solid #9aa7b5;
+  border-radius: 6px;
+  padding: 8px 14px;
+  background: #f8fbff;
+  color: #003366;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.custom-file-btn:hover {
+  background: #edf4fb;
+}
+
+.custom-file-btn-disabled {
+  background: #eceff1;
+  color: #7a8897;
+  border-color: #c0c8d0;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.attachment-limit-note {
+  display: block;
+  margin-top: 8px;
+  color: #5a6270;
+  font-size: 12px;
+}
+
+.selected-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.selected-attachment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #f4f7fc;
+  border: 1px solid #d9e3ef;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.selected-attachment-item span {
+  color: #2f3b49;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.btn-remove-attachment {
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  background: #c0392b;
+  color: #fff;
 }
 
 .btn-submit {
@@ -263,6 +362,49 @@
 .notes {
   max-width: 220px;
   color: #5a6270;
+}
+
+.comments-box {
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-item {
+  background: #f7f9fc;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.comment-meta {
+  font-size: 11px;
+  color: #003366;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  font-size: 13px;
+  color: #26323f;
+}
+
+.comment-actions {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+}
+
+.comment-actions button,
+.btn-comment {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  background: #003366;
+  color: #ffb800;
 }
 
 .action-buttons {
