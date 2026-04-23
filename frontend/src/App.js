@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import CalendarPage from './pages/CalendarPage';
 import IncidentPage from './pages/IncidentPage';
 import TicketManagerPage from './pages/TicketManagerPage';
+import TechnicianManagementPage from './pages/TechnicianManagementPage';
 import ResourcePage from './pages/ResourcePage';
 import ResourceManagementPage from './pages/ResourceManagementPage';
 import LoginPage from './pages/LoginPage';
@@ -20,6 +21,7 @@ const ROLE_COLORS = {
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [currentUser, setCurrentUser] = useState(null);
+  const [bookingPrefill, setBookingPrefill] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -36,7 +38,7 @@ function App() {
 
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
-    setCurrentPage('home');
+    setCurrentPage(user?.role === 'MANAGER' ? 'ticket-manager' : 'home');
   };
 
   const handleLogout = () => {
@@ -45,11 +47,26 @@ function App() {
     setCurrentPage('home');
   };
 
+  const handleStartBooking = (resource) => {
+    // Keep teammate flow: resource cards can prefill booking form.
+    if (resource) {
+      setBookingPrefill({
+        resourceId: resource.id || resource.resourceId || '',
+        resourceName: resource.name || resource.resourceName || '',
+      });
+    } else {
+      setBookingPrefill(null);
+    }
+    setCurrentPage('bookings');
+  };
+
   if (!currentUser) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
   const roleStyle = ROLE_COLORS[currentUser.role] || ROLE_COLORS.STUDENT;
+  const isManager = currentUser.role === 'MANAGER';
+  const onManagerPage = isManager && (currentPage === 'ticket-manager' || currentPage === 'technician-management');
 
   return (
     <div className="app">
@@ -59,9 +76,15 @@ function App() {
         </div>
         <div className="nav-links">
           <a href="#home" onClick={() => setCurrentPage('home')}>Home</a>
+          <a href="#dashboard" onClick={() => setCurrentPage('dashboard')}>Dashboard</a>
           <a href="#bookings" onClick={() => setCurrentPage('bookings')}>Bookings</a>
           <a href="#incidents" onClick={() => setCurrentPage('incidents')}>Incidents</a>
-          <a href="#ticket-manager" onClick={() => setCurrentPage('ticket-manager')}>Ticket Manager</a>
+          {isManager && (
+            <>
+              <a href="#ticket-manager" onClick={() => setCurrentPage('ticket-manager')}>Ticket Manager</a>
+              <a href="#technicians" onClick={() => setCurrentPage('technician-management')}>Technicians</a>
+            </>
+          )}
           <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
           <a href="#resources" onClick={() => setCurrentPage('resources')}>Resources</a>
         </div>
@@ -170,15 +193,24 @@ function App() {
       {currentPage === 'bookings' && (
         <BookingPage
           currentUser={currentUser}
+          prefill={bookingPrefill}
           onOpenAdminDashboard={() => setCurrentPage('dashboard')}
         />
       )}
-      {currentPage === 'incidents' && <IncidentPage />}
-      {currentPage === 'ticket-manager' && <TicketManagerPage />}
+      {currentPage === 'incidents' && <IncidentPage currentUser={currentUser} />}
+      {currentPage === 'ticket-manager' && isManager && (
+        <TicketManagerPage
+          currentUser={currentUser}
+          onNavigateToTechnicians={() => setCurrentPage('technician-management')}
+        />
+      )}
+      {currentPage === 'technician-management' && isManager && (
+        <TechnicianManagementPage onBack={() => setCurrentPage('ticket-manager')} />
+      )}
       {currentPage === 'calendar' && <CalendarPage />}
       {currentPage === 'resources' && <ResourcePage
         onNavigate={() => setCurrentPage('resource-management')}
-        onBook={() => setCurrentPage('bookings')}
+        onBook={handleStartBooking}
       />}
       {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
     </div>

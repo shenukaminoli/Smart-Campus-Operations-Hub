@@ -5,12 +5,11 @@ import '../styles/BookingPage.css';
 
 const API = 'http://localhost:8081/api/bookings';
 
-function BookingPage({ currentUser, onOpenAdminDashboard }) {
+function BookingPage({ currentUser, onOpenAdminDashboard, prefill }) {
   const [bookings, setBookings] = useState([]);
   const [resources, setResources] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState('');
   const [toast, setToast] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +31,16 @@ function BookingPage({ currentUser, onOpenAdminDashboard }) {
   }, [currentUser]);
 
   useEffect(() => {
+    if (prefill) {
+      setForm(prev => ({
+        ...prev,
+        resourceId: prefill.resourceId || prefill.id || '',
+        resourceName: prefill.resourceName || prefill.name || ''
+      }));
+    }
+  }, [prefill]);
+
+  useEffect(() => {
     applyFilters();
     calculateStats();
   }, [bookings, filterStatus, searchTerm]);
@@ -43,14 +52,11 @@ function BookingPage({ currentUser, onOpenAdminDashboard }) {
 
   const fetchBookings = async () => {
     setLoading(true);
-    setLoadError('');
     try {
       const res = await axios.get(`${API}/user/${currentUser.id}`);
       setBookings(res.data);
     } catch (err) {
-      const message = err?.response?.data?.error || 'Error fetching bookings';
-      setLoadError(message);
-      showToast(message, 'error');
+      showToast('Error fetching bookings', 'error');
     }
     setLoading(false);
   };
@@ -218,6 +224,100 @@ function BookingPage({ currentUser, onOpenAdminDashboard }) {
         showToast('Error creating booking.', 'error');
       }
     }
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      await axios.put(`${API}/${id}/approve`);
+      showToast('Booking approved!', 'success');
+      fetchBookings();
+    } catch (err) {
+      showToast('Cannot approve this booking.', 'error');
+    }
+  };
+
+  const handleReject = async (id) => {
+    const reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+    try {
+      await axios.put(`${API}/${id}/reject`, { reason });
+      showToast('Booking rejected!', 'success');
+      fetchBookings();
+    } catch (err) {
+      showToast('Cannot reject this booking.', 'error');
+    }
+  };
+
+  const handleCancel = async (id) => {
+    try {
+      await axios.put(`${API}/${id}/cancel`);
+      showToast('Booking cancelled!', 'success');
+      fetchBookings();
+    } catch (err) {
+      showToast('Cannot cancel this booking.', 'error');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    try {
+      await axios.delete(`${API}/${id}`);
+      showToast('Booking deleted!', 'success');
+      fetchBookings();
+    } catch (err) {
+      showToast('Cannot delete this booking.', 'error');
+    }
+  };
+
+  // Edit booking
+  const handleEditClick = (booking) => {
+    if (booking.status !== 'PENDING') {
+      showToast('Only PENDING bookings can be edited!', 'error');
+      return;
+    }
+    setEditingBooking({ ...booking });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (editingBooking.startTime >= editingBooking.endTime) {
+      showToast('End time must be after start time!', 'error');
+      return;
+    }
+    try {
+      await axios.put(`${API}/${editingBooking.id}`, editingBooking);
+      showToast('Booking updated successfully!', 'success');
+      setEditingBooking(null);
+      fetchBookings();
+    } catch (err) {
+      if (err.response && err.response.status === 409) {
+        showToast('Conflict! This resource is already booked for this time.', 'error');
+      } else {
+        showToast('Error updating booking.', 'error');
+      }
+    }
+  };
+
+  // Export to CSV
+  const exportToCSV = () => {
+    const headers = ['Resource', 'User', 'Date', 'Start Time',
+      'End Time', 'Purpose', 'Attendees', 'Status', 'Rejection Reason'];
+    const rows = filteredBookings.map(b => [
+      b.resourceName, b.userId, b.date, b.startTime,
+      b.endTime, b.purpose, b.attendees, b.status,
+      b.rejectionReason || ''
+    ]);
+    const csvContent = [headers, ...rows]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bookings.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Bookings exported successfully!', 'success');
   };
 
   const getStatusClass = (status) => {
@@ -389,18 +489,13 @@ function BookingPage({ currentUser, onOpenAdminDashboard }) {
       <div className="bookings-table-container">
         <h2>📋 My Bookings
           <span className="booking-count">{filteredBookings.length} records</span>
+          <button className="btn-export" onClick={exportToCSV}>⬇ Export CSV</button>
         </h2>
 
         {loading ? (
           <div className="loading">
             <div className="spinner"></div>
             <p>Loading bookings...</p>
-          </div>
-        ) : loadError ? (
-          <div className="empty-state">
-            <div className="empty-icon">⚠️</div>
-            <h3>Unable to load bookings</h3>
-            <p>{loadError}</p>
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="empty-state">
@@ -440,13 +535,21 @@ function BookingPage({ currentUser, onOpenAdminDashboard }) {
                   <td className="rejection-reason">
                     {booking.rejectionReason || '-'}
                   </td>
-                  <td>
-                    <div className="action-buttons">
-                      {booking.status === 'PENDING' && (
-                        <button className="btn-edit" onClick={() => handleEditClick(booking)}>Edit</button>
-                      )}
-                      <button className="btn-delete" onClick={() => handleDelete(booking.id)}>Delete</button>
-                    </div>
+                  <td className="action-buttons">
+                    {currentUser?.role === 'ADMIN' && booking.status === 'PENDING' && (
+                      <>
+                        <button className="btn-approve" onClick={() => handleApprove(booking.id)}>Approve</button>
+                        <button className="btn-reject" onClick={() => handleReject(booking.id)}>Reject</button>
+                      </>
+                    )}
+                    {currentUser?.role === 'ADMIN' && booking.status === 'APPROVED' && (
+                      <button className="btn-cancel" onClick={() => handleCancel(booking.id)}>Cancel</button>
+                    )}
+                    {booking.status === 'PENDING' && (
+                      <button className="btn-edit" onClick={() => handleEditClick(booking)}>Edit</button>
+                    )}
+                    <button className="btn-delete" onClick={() => handleDelete(booking.id)}>Delete</button>
+                  </td>
                   </td>
                 </tr>
               ))}
@@ -455,6 +558,7 @@ function BookingPage({ currentUser, onOpenAdminDashboard }) {
         )}
       </div>
 
+      {/* Edit Modal */}
       {editingBooking && (
         <div className="modal-overlay" onClick={() => setEditingBooking(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
