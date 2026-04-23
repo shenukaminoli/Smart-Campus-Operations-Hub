@@ -9,6 +9,7 @@ import TechnicianManagementPage from './pages/TechnicianManagementPage';
 import ResourcePage from './pages/ResourcePage';
 import ResourceManagementPage from './pages/ResourceManagementPage';
 import LoginPage from './pages/LoginPage';
+import RoleManagementPage from './pages/RoleManagementPage';
 import { logoutUser } from './api/authApi';
 
 const ROLE_COLORS = {
@@ -87,6 +88,9 @@ function App() {
           )}
           <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
           <a href="#resources" onClick={() => setCurrentPage('resources')}>Resources</a>
+          {currentUser.role === 'ADMIN' && (
+            <a href="#admin" onClick={() => setCurrentPage('admin')}>Admin</a>
+          )}
         </div>
         <div className="nav-user">
           <span className="nav-username">{currentUser.fullName}</span>
@@ -213,6 +217,7 @@ function App() {
         onBook={handleStartBooking}
       />}
       {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
+      {currentPage === 'admin' && <RoleManagementPage currentUser={currentUser} />}
     </div>
   );
 }

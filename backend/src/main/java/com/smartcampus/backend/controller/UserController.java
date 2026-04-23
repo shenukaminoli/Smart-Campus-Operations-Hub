@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +20,32 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @GetMapping("/stats")
+    public ResponseEntity<?> getUserStats() {
+        return ResponseEntity.ok(userService.getUserStats());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> searchUsers(@RequestParam String query) {
+        List<User> users = userService.searchUsers(query);
+        users.forEach(u -> u.setPassword(null));
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/me/profile")
+    public ResponseEntity<?> getMyProfile(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
+        }
+        Optional<User> userOpt = userService.getUserById(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+        }
+        User user = userOpt.get();
+        user.setPassword(null);
+        return ResponseEntity.ok(user);
+    }
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {

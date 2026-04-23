@@ -16,4 +16,7 @@ public interface UserRepository extends MongoRepository<User, String> {
     List<User> findByDepartment(String department);
     List<User> findByActive(boolean active);
     Optional<User> findByOauthProviderAndOauthId(String oauthProvider, String oauthId);
+    List<User> findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email);
+    long countByRole(Role role);
+    long countByActive(boolean active);
 }

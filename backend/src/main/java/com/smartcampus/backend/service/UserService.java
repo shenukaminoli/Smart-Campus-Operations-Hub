@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -80,6 +82,21 @@ public class UserService {
             .orElseThrow(() -> new RuntimeException("User not found"));
         existing.setActive(true);
         return userRepository.save(existing);
+    }
+
+    public List<User> searchUsers(String query) {
+        return userRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
+    }
+
+    public Map<String, Long> getUserStats() {
+        Map<String, Long> stats = new LinkedHashMap<>();
+        stats.put("total", userRepository.count());
+        stats.put("active", userRepository.countByActive(true));
+        stats.put("inactive", userRepository.countByActive(false));
+        for (Role role : Role.values()) {
+            stats.put(role.name().toLowerCase(), userRepository.countByRole(role));
+        }
+        return stats;
     }
 
     public void deleteUser(String id) {
