@@ -27,9 +27,15 @@ public class Technician {
     private String phone;
 
     @NotBlank(message = "Specialization is required")
+    @Pattern(
+        regexp = "ELECTRICAL|NETWORK|HVAC|PLUMBING|IT_SUPPORT|SECURITY|GENERAL_MAINTENANCE",
+        message = "Invalid specialization"
+    )
     private String specialization;
 
-    private boolean active = true;
+    private Boolean available = true;
+    // Legacy fallback for old records that were saved with "active".
+    private Boolean active;
 
     public String getId() {
         return id;
@@ -79,11 +85,25 @@ public class Technician {
         this.specialization = specialization;
     }
 
-    public boolean isActive() {
+    public boolean isAvailable() {
+        if (available != null) {
+            return available;
+        }
+        if (active != null) {
+            return active;
+        }
+        return true;
+    }
+
+    public void setAvailable(Boolean available) {
+        this.available = available;
+    }
+
+    public Boolean getActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
     }
 }

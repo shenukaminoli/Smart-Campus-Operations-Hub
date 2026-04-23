@@ -4,6 +4,15 @@ import '../styles/IncidentPage.css';
 
 const API = 'http://localhost:8081/api/tickets';
 const ALLOWED_STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED'];
+const SPECIALIZATIONS = [
+  { value: 'ELECTRICAL', label: 'Electrical' },
+  { value: 'NETWORK', label: 'Network' },
+  { value: 'HVAC', label: 'HVAC' },
+  { value: 'PLUMBING', label: 'Plumbing' },
+  { value: 'IT_SUPPORT', label: 'IT Support' },
+  { value: 'SECURITY', label: 'Security' },
+  { value: 'GENERAL_MAINTENANCE', label: 'General Maintenance' }
+];
 
 const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -21,7 +30,9 @@ function IncidentPage() {
 
   const [form, setForm] = useState({
     resourceOrLocation: '',
-    category: '',
+    category: 'GENERAL_MAINTENANCE',
+    subject: '',
+    preferredSpecialization: 'GENERAL_MAINTENANCE',
     description: '',
     priority: 'MEDIUM',
     preferredContact: '',
@@ -65,6 +76,7 @@ function IncidentPage() {
       const matchesSearch = !term
         || ticket.resourceOrLocation?.toLowerCase().includes(term)
         || ticket.category?.toLowerCase().includes(term)
+        || ticket.preferredSpecialization?.toLowerCase().includes(term)
         || ticket.reportedBy?.toLowerCase().includes(term)
         || ticket.assignedTechnicianId?.toLowerCase().includes(term);
       return matchesStatus && matchesSearch;
@@ -72,7 +84,17 @@ function IncidentPage() {
   }, [tickets, search, statusFilter]);
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    if (name === 'preferredSpecialization') {
+      setForm((prev) => ({
+        ...prev,
+        preferredSpecialization: value,
+        // Keep backend "category" synced with the single visible category dropdown.
+        category: value
+      }));
+      return;
+    }
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAttachmentChange = (e) => {
@@ -111,7 +133,9 @@ function IncidentPage() {
       showToast('Incident ticket created successfully', 'success');
       setForm({
         resourceOrLocation: '',
-        category: '',
+        category: 'GENERAL_MAINTENANCE',
+        subject: '',
+        preferredSpecialization: 'GENERAL_MAINTENANCE',
         description: '',
         priority: 'MEDIUM',
         preferredContact: '',
@@ -136,6 +160,14 @@ function IncidentPage() {
     }
   };
 
+  const jumpToStatus = (status) => {
+    setStatusFilter(status);
+    const tableSection = document.getElementById('incident-tickets-section');
+    if (tableSection) {
+      tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="incident-page">
       {toast && (
@@ -150,12 +182,12 @@ function IncidentPage() {
       </p>
 
       <div className="stats-cards">
-        <div className="stat-card stat-total"><h3>{stats.total}</h3><p>Total</p></div>
-        <div className="stat-card stat-open"><h3>{stats.open}</h3><p>Open</p></div>
-        <div className="stat-card stat-progress"><h3>{stats.inProgress}</h3><p>In Progress</p></div>
-        <div className="stat-card stat-resolved"><h3>{stats.resolved}</h3><p>Resolved</p></div>
-        <div className="stat-card stat-closed"><h3>{stats.closed}</h3><p>Closed</p></div>
-        <div className="stat-card stat-rejected"><h3>{stats.rejected}</h3><p>Rejected</p></div>
+        <button className={`incident-stat-card stat-total ${statusFilter === 'ALL' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('ALL')}><h3>{stats.total}</h3><p>Total</p></button>
+        <button className={`incident-stat-card stat-open ${statusFilter === 'OPEN' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('OPEN')}><h3>{stats.open}</h3><p>Open</p></button>
+        <button className={`incident-stat-card stat-progress ${statusFilter === 'IN_PROGRESS' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('IN_PROGRESS')}><h3>{stats.inProgress}</h3><p>In Progress</p></button>
+        <button className={`incident-stat-card stat-resolved ${statusFilter === 'RESOLVED' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('RESOLVED')}><h3>{stats.resolved}</h3><p>Resolved</p></button>
+        <button className={`incident-stat-card stat-closed ${statusFilter === 'CLOSED' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('CLOSED')}><h3>{stats.closed}</h3><p>Closed</p></button>
+        <button className={`incident-stat-card stat-rejected ${statusFilter === 'REJECTED' ? 'incident-stat-active' : ''}`} onClick={() => jumpToStatus('REJECTED')}><h3>{stats.rejected}</h3><p>Rejected</p></button>
       </div>
 
       <div className="incident-form-container">
@@ -170,12 +202,26 @@ function IncidentPage() {
               required
             />
             <input
-              name="category"
-              placeholder="Category (Electrical, Network, Facility...)"
-              value={form.category}
+              name="subject"
+              placeholder="Ticket Subject"
+              value={form.subject}
               onChange={handleChange}
               required
             />
+          </div>
+          <div className="form-row">
+            <select
+              name="preferredSpecialization"
+              value={form.preferredSpecialization}
+              onChange={handleChange}
+              required
+            >
+              {SPECIALIZATIONS.map((specialization) => (
+                <option key={specialization.value} value={specialization.value}>
+                  {`Category: ${specialization.label}`}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="form-row">
             <select name="priority" value={form.priority} onChange={handleChange} required>
@@ -234,7 +280,7 @@ function IncidentPage() {
         </select>
       </div>
 
-      <div className="tickets-table-container">
+      <div id="incident-tickets-section" className="tickets-table-container">
         <h2>📋 Incident Tickets <span className="ticket-count">{filtered.length} records</span></h2>
         {loading ? (
           <div className="loading"><div className="spinner"></div><p>Loading tickets...</p></div>
@@ -246,6 +292,8 @@ function IncidentPage() {
               <tr>
                 <th>Location</th>
                 <th>Category</th>
+                <th>Subject</th>
+                <th>Specialization</th>
                 <th>Priority</th>
                 <th>Reporter</th>
                 <th>Technician</th>
@@ -258,7 +306,9 @@ function IncidentPage() {
               {filtered.map((ticket) => (
                 <tr key={ticket.id}>
                   <td>{ticket.resourceOrLocation}</td>
-                  <td>{ticket.category}</td>
+                  <td>{ticket.category?.replace(/_/g, ' ')}</td>
+                  <td>{ticket.subject}</td>
+                  <td>{ticket.preferredSpecialization?.replace(/_/g, ' ')}</td>
                   <td>{ticket.priority}</td>
                   <td>{ticket.reportedBy}</td>
                   <td>{ticket.assignedTechnicianId || '-'}</td>

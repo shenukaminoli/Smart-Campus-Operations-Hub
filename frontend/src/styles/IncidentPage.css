@@ -48,7 +48,7 @@
   flex-wrap: wrap;
 }
 
-.stat-card {
+.incident-stat-card {
   flex: 1;
   min-width: 130px;
   background: white;
@@ -57,19 +57,33 @@
   text-align: center;
   box-shadow: 0 4px 15px rgba(0, 51, 102, 0.08);
   border-top: 4px solid #003366;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.stat-card h3 {
+.incident-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 51, 102, 0.15);
+}
+
+.incident-stat-card h3 {
   font-size: 32px;
   font-weight: 800;
   margin: 0 0 4px;
 }
 
-.stat-card p {
+.incident-stat-card p {
   margin: 0;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
+}
+
+.incident-stat-active {
+  outline: 3px solid rgba(0, 102, 204, 0.25);
 }
 
 .stat-total { border-top-color: #003366; color: #003366; }

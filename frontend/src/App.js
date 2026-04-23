@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import CalendarPage from './pages/CalendarPage';
 import IncidentPage from './pages/IncidentPage';
 import TicketManagerPage from './pages/TicketManagerPage';
+import TechnicianManagementPage from './pages/TechnicianManagementPage';
 import ResourcePage from './pages/ResourcePage';
 import ResourceManagementPage from './pages/ResourceManagementPage';
 
@@ -128,7 +129,12 @@ function App() {
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
       {currentPage === 'incidents' && <IncidentPage />}
-      {currentPage === 'ticket-manager' && <TicketManagerPage />}
+      {currentPage === 'ticket-manager' && (
+        <TicketManagerPage onNavigateToTechnicians={() => setCurrentPage('technician-management')} />
+      )}
+      {currentPage === 'technician-management' && (
+        <TechnicianManagementPage onBackToManager={() => setCurrentPage('ticket-manager')} />
+      )}
       {currentPage === 'calendar' && <CalendarPage />}
       {currentPage === 'resources' && <ResourcePage 
         onNavigate={() => setCurrentPage('resource-management')} 

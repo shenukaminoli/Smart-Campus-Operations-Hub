@@ -24,6 +24,16 @@ public class IncidentTicket {
     @NotBlank(message = "Category is required")
     private String category;
 
+    @NotBlank(message = "Subject is required")
+    private String subject;
+
+    @NotBlank(message = "Preferred specialization is required")
+    @Pattern(
+        regexp = "ELECTRICAL|NETWORK|HVAC|PLUMBING|IT_SUPPORT|SECURITY|GENERAL_MAINTENANCE",
+        message = "Invalid specialization"
+    )
+    private String preferredSpecialization;
+
     @NotBlank(message = "Description is required")
     @Size(min = 10, message = "Description should be at least 10 characters")
     private String description;
@@ -124,6 +134,22 @@ public class IncidentTicket {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getPreferredSpecialization() {
+        return preferredSpecialization;
+    }
+
+    public void setPreferredSpecialization(String preferredSpecialization) {
+        this.preferredSpecialization = preferredSpecialization;
     }
 
     public String getPriority() {

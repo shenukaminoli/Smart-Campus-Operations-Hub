@@ -21,6 +21,9 @@ public class TechnicianService {
         if (technicianRepository.existsByTechnicianId(technician.getTechnicianId())) {
             throw new RuntimeException("Technician ID already exists");
         }
+        if (technician.getActive() != null && technician.getActive()) {
+            technician.setAvailable(true);
+        }
         return technicianRepository.save(technician);
     }
 
@@ -38,7 +41,7 @@ public class TechnicianService {
         existing.setEmail(updated.getEmail());
         existing.setPhone(updated.getPhone());
         existing.setSpecialization(updated.getSpecialization());
-        existing.setActive(updated.isActive());
+        existing.setAvailable(updated.isAvailable());
         return technicianRepository.save(existing);
     }
 

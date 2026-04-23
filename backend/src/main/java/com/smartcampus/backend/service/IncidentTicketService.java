@@ -1,6 +1,7 @@
 package com.smartcampus.backend.service;
 import com.smartcampus.backend.model.IncidentTicket;
 import com.smartcampus.backend.repository.IncidentTicketRepository;
+import com.smartcampus.backend.repository.TechnicianRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,9 +15,12 @@ import java.util.Set;
 public class IncidentTicketService {
 
     private static final Set<String> TERMINAL_STATUSES = Set.of("CLOSED", "REJECTED");
+    private static final Set<String> BUSY_STATUSES = Set.of("OPEN", "IN_PROGRESS");
 
     @Autowired
     private IncidentTicketRepository incidentTicketRepository;
+    @Autowired
+    private TechnicianRepository technicianRepository;
 
     public IncidentTicket createTicket(IncidentTicket ticket) {
         ticket.setId(null);
@@ -52,9 +56,27 @@ public class IncidentTicketService {
         if (TERMINAL_STATUSES.contains(ticket.getStatus())) {
             throw new RuntimeException("Cannot assign technician to a " + ticket.getStatus() + " ticket");
         }
+
+        technicianRepository.findByTechnicianId(technicianId)
+            .orElseThrow(() -> new RuntimeException("Technician not found"));
+        String previousTechnicianId = ticket.getAssignedTechnicianId();
+
+        // Allow reassignment, but block assigning a technician who is currently busy in another active ticket.
+        if (!technicianId.equals(previousTechnicianId) && isTechnicianBusy(technicianId)) {
+            throw new RuntimeException("Selected technician is currently not available");
+        }
+
         ticket.setAssignedTechnicianId(technicianId);
         ticket.setUpdatedAt(LocalDateTime.now());
-        return incidentTicketRepository.save(ticket);
+        IncidentTicket saved = incidentTicketRepository.save(ticket);
+
+        // Keep availability in sync with active ticket assignments.
+        if (previousTechnicianId != null && !previousTechnicianId.isBlank()) {
+            refreshTechnicianAvailability(previousTechnicianId);
+        }
+        refreshTechnicianAvailability(technicianId);
+
+        return saved;
     }
 
     public IncidentTicket updateStatus(String id, String status, String resolutionNote, String rejectionReason) {
@@ -101,11 +123,27 @@ public class IncidentTicketService {
             ticket.setRejectionReason(rejectionReason);
         }
 
-        return incidentTicketRepository.save(ticket);
+        IncidentTicket saved = incidentTicketRepository.save(ticket);
+        if (ticket.getAssignedTechnicianId() != null && !ticket.getAssignedTechnicianId().isBlank()) {
+            refreshTechnicianAvailability(ticket.getAssignedTechnicianId());
+        }
+        return saved;
     }
 
     private IncidentTicket getExistingTicket(String id) {
         return incidentTicketRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Ticket not found"));
+    }
+
+    private boolean isTechnicianBusy(String technicianId) {
+        List<IncidentTicket> technicianTickets = incidentTicketRepository.findByAssignedTechnicianId(technicianId);
+        return technicianTickets.stream().anyMatch(ticket -> BUSY_STATUSES.contains(ticket.getStatus()));
+    }
+
+    private void refreshTechnicianAvailability(String technicianId) {
+        technicianRepository.findByTechnicianId(technicianId).ifPresent(technician -> {
+            technician.setAvailable(!isTechnicianBusy(technicianId));
+            technicianRepository.save(technician);
+        });
     }
 }
