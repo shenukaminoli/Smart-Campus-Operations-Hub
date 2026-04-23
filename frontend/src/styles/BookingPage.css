@@ -26,7 +26,7 @@
   border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
-  z-index: 999;
+  z-index: 9999;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   animation: slideIn 0.3s ease;
 }
@@ -524,7 +524,7 @@
 .btn-delete:hover { background-color: #607d8b; }
 .btn-edit:hover { background-color: #0052a3; }
 
-/* EDIT MODAL */
+/* MODAL */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -549,8 +549,10 @@
   border-radius: 16px;
   width: 500px;
   max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   animation: slideUp 0.3s ease;
 }
@@ -567,8 +569,7 @@
   padding: 20px 24px;
   background-color: #003366;
   color: white;
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -595,6 +596,8 @@
 
 .modal-body {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .edit-form-row {
