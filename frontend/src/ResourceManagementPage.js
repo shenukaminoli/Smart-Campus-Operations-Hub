@@ -57,6 +57,18 @@ function ResourceManagementPage({ onNavigate }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Frontend Validation
+    if (!form.name.trim() || !form.location.trim()) {
+      setError("Validation Error: Resource Name and Location are required.");
+      return;
+    }
+
+    if (Number(form.capacity) < 1) {
+      setError("Validation Error: Capacity must be a positive number (at least 1).");
+      return;
+    }
+
     const payload = {
       ...form,
       capacity: Number(form.capacity),
@@ -244,6 +256,7 @@ function ResourceManagementPage({ onNavigate }) {
     };
   }, [resources]);
 
+  const BLUE_SHADES = ['#003366', '#1a4775', '#335c85', '#4d7094', '#6685a3', '#8099b3', '#99adc2'];
   const CHART_COLORS = ['#003366', '#FFB800', '#16a34a', '#dc2626', '#90a4ae', '#607d8b', '#795548'];
 
   return (
@@ -302,7 +315,7 @@ function ResourceManagementPage({ onNavigate }) {
                   onClick={(data) => handleChartClick(data, 'type')}
                 >
                   {typeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={BLUE_SHADES[index % BLUE_SHADES.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -320,10 +333,13 @@ function ResourceManagementPage({ onNavigate }) {
                 <Tooltip cursor={{fill: '#f4f7fc'}} />
                 <Bar 
                   dataKey="average" 
-                  fill="#FFB800" 
                   radius={[10, 10, 0, 0]} 
                   barSize={40}
-                />
+                >
+                  {capData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={BLUE_SHADES[index % BLUE_SHADES.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -367,10 +383,13 @@ function ResourceManagementPage({ onNavigate }) {
                 <Bar 
                   dataKey="value" 
                   name="Resources"
-                  fill="#003366" 
                   radius={[10, 10, 0, 0]} 
                   barSize={40}
-                />
+                >
+                  {locationData.map((entry, index) => (
+                    <Cell key={`cell-loc-${index}`} fill={BLUE_SHADES[index % BLUE_SHADES.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -392,7 +411,7 @@ function ResourceManagementPage({ onNavigate }) {
             <option value="MEETING_ROOM">MEETING_ROOM</option>
             <option value="EQUIPMENT">EQUIPMENT</option>
           </select>
-          <input type="number" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} required />
+          <input type="number" min="1" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} required />
           <input placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required />
           <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             <option value="ACTIVE">ACTIVE</option>
