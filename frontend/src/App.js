@@ -76,7 +76,6 @@ function App() {
         </div>
         <div className="nav-links">
           <a href="#home" onClick={() => setCurrentPage('home')}>Home</a>
-          <a href="#dashboard" onClick={() => setCurrentPage('dashboard')}>Dashboard</a>
           <a href="#bookings" onClick={() => setCurrentPage('bookings')}>Bookings</a>
           <a href="#incidents" onClick={() => setCurrentPage('incidents')}>Incidents</a>
           {isManager && (
