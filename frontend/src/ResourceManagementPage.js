@@ -23,6 +23,7 @@ function ResourceManagementPage({ onNavigate }) {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [selectedIds, setSelectedIds] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -124,6 +125,16 @@ function ResourceManagementPage({ onNavigate }) {
       fetchResources();
     } catch {
       setError("Delete failed");
+    }
+  };
+
+  const handleToggleStatus = async (resource) => {
+    const newStatus = resource.status === "ACTIVE" ? "OUT_OF_SERVICE" : "ACTIVE";
+    try {
+      await updateResource(resource.id, { ...resource, status: newStatus });
+      fetchResources();
+    } catch {
+      setError("Failed to toggle status quickly.");
     }
   };
 
@@ -271,6 +282,10 @@ function ResourceManagementPage({ onNavigate }) {
             {showAnalytics ? "📊 Hide Analytics" : "📊 Show Analytics"}
           </button>
           <button className="btn-ghost" onClick={exportToPDF}>⬇️ Export PDF</button>
+          <div className="view-mode-selector">
+            <button className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')}>🔲</button>
+            <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>📝</button>
+          </div>
           <button className="btn-admin-toggle" onClick={onNavigate}>
             Back to Catalogue
           </button>
