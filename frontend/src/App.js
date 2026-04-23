@@ -21,6 +21,7 @@ const ROLE_COLORS = {
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [currentUser, setCurrentUser] = useState(null);
+  const [bookingPrefill, setBookingPrefill] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -44,6 +45,19 @@ function App() {
     logoutUser();
     setCurrentUser(null);
     setCurrentPage('home');
+  };
+
+  const handleStartBooking = (resource) => {
+    // Keep teammate flow: resource cards can prefill booking form.
+    if (resource) {
+      setBookingPrefill({
+        resourceId: resource.id || resource.resourceId || '',
+        resourceName: resource.name || resource.resourceName || '',
+      });
+    } else {
+      setBookingPrefill(null);
+    }
+    setCurrentPage('bookings');
   };
 
   if (!currentUser) {
@@ -174,7 +188,7 @@ function App() {
       )}
 
       {currentPage === 'dashboard' && <DashboardPage />}
-      {currentPage === 'bookings' && <BookingPage />}
+      {currentPage === 'bookings' && <BookingPage prefill={bookingPrefill} />}
       {currentPage === 'incidents' && <IncidentPage currentUser={currentUser} />}
       {currentPage === 'ticket-manager' && isManager && (
         <TicketManagerPage
@@ -188,7 +202,7 @@ function App() {
       {currentPage === 'calendar' && <CalendarPage />}
       {currentPage === 'resources' && <ResourcePage
         onNavigate={() => setCurrentPage('resource-management')}
-        onBook={() => setCurrentPage('bookings')}
+        onBook={handleStartBooking}
       />}
       {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
     </div>
