@@ -23,11 +23,6 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [bookingPrefill, setBookingPrefill] = useState(null);
 
-  const handleStartBooking = (resource) => {
-    setBookingPrefill(resource);
-    setCurrentPage('bookings');
-  };
-
   useEffect(() => {
     const stored = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -50,6 +45,19 @@ function App() {
     logoutUser();
     setCurrentUser(null);
     setCurrentPage('home');
+  };
+
+  const handleStartBooking = (resource) => {
+    // Keep teammate flow: resource cards can prefill booking form.
+    if (resource) {
+      setBookingPrefill({
+        resourceId: resource.id || resource.resourceId || '',
+        resourceName: resource.name || resource.resourceName || '',
+      });
+    } else {
+      setBookingPrefill(null);
+    }
+    setCurrentPage('bookings');
   };
 
   if (!currentUser) {
@@ -181,9 +189,6 @@ function App() {
 
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage prefill={bookingPrefill} />}
-      {currentPage === 'incidents' && <IncidentPage />}
-      {currentPage === 'ticket-manager' && <TicketManagerPage />}
-      {currentPage === 'bookings' && <BookingPage />}
       {currentPage === 'incidents' && <IncidentPage currentUser={currentUser} />}
       {currentPage === 'ticket-manager' && isManager && (
         <TicketManagerPage
