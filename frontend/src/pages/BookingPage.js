@@ -169,17 +169,6 @@ function BookingPage({ currentUser, onOpenAdminDashboard, prefill }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this booking?')) return;
-    try {
-      await axios.delete(`${API}/${id}`);
-      showToast('Booking deleted successfully!', 'success');
-      await fetchBookings();
-    } catch (err) {
-      showToast('Cannot delete this booking.', 'error');
-    }
-  };
-
   const validateForm = () => {
     if (form.startTime >= form.endTime) {
       showToast('End time must be after start time!', 'error');
@@ -266,35 +255,6 @@ function BookingPage({ currentUser, onOpenAdminDashboard, prefill }) {
       fetchBookings();
     } catch (err) {
       showToast('Cannot delete this booking.', 'error');
-    }
-  };
-
-  // Edit booking
-  const handleEditClick = (booking) => {
-    if (booking.status !== 'PENDING') {
-      showToast('Only PENDING bookings can be edited!', 'error');
-      return;
-    }
-    setEditingBooking({ ...booking });
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (editingBooking.startTime >= editingBooking.endTime) {
-      showToast('End time must be after start time!', 'error');
-      return;
-    }
-    try {
-      await axios.put(`${API}/${editingBooking.id}`, editingBooking);
-      showToast('Booking updated successfully!', 'success');
-      setEditingBooking(null);
-      fetchBookings();
-    } catch (err) {
-      if (err.response && err.response.status === 409) {
-        showToast('Conflict! This resource is already booked for this time.', 'error');
-      } else {
-        showToast('Error updating booking.', 'error');
-      }
     }
   };
 
@@ -549,7 +509,6 @@ function BookingPage({ currentUser, onOpenAdminDashboard, prefill }) {
                       <button className="btn-edit" onClick={() => handleEditClick(booking)}>Edit</button>
                     )}
                     <button className="btn-delete" onClick={() => handleDelete(booking.id)}>Delete</button>
-                  </td>
                   </td>
                 </tr>
               ))}
