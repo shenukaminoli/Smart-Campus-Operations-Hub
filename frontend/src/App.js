@@ -59,7 +59,6 @@ function App() {
         </div>
         <div className="nav-links">
           <a href="#home" onClick={() => setCurrentPage('home')}>Home</a>
-          <a href="#dashboard" onClick={() => setCurrentPage('dashboard')}>Dashboard</a>
           <a href="#bookings" onClick={() => setCurrentPage('bookings')}>Bookings</a>
           <a href="#incidents" onClick={() => setCurrentPage('incidents')}>Incidents</a>
           <a href="#ticket-manager" onClick={() => setCurrentPage('ticket-manager')}>Ticket Manager</a>
@@ -82,8 +81,6 @@ function App() {
               <div className="hero-buttons">
                 <button className="btn-primary"
                   onClick={() => setCurrentPage('bookings')}>Make a Booking</button>
-                <button className="btn-secondary"
-                  onClick={() => setCurrentPage('dashboard')}>View Dashboard</button>
                 <button className="btn-primary"
                   onClick={() => setCurrentPage('resources')}>Browse Resources</button>
               </div>
@@ -170,7 +167,12 @@ function App() {
       )}
 
       {currentPage === 'dashboard' && <DashboardPage />}
-      {currentPage === 'bookings' && <BookingPage />}
+      {currentPage === 'bookings' && (
+        <BookingPage
+          currentUser={currentUser}
+          onOpenAdminDashboard={() => setCurrentPage('dashboard')}
+        />
+      )}
       {currentPage === 'incidents' && <IncidentPage />}
       {currentPage === 'ticket-manager' && <TicketManagerPage />}
       {currentPage === 'calendar' && <CalendarPage />}

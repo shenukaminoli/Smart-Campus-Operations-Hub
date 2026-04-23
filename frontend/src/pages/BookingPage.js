@@ -1,35 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getResources } from '../api/resourceApi';
 import '../styles/BookingPage.css';
 
 const API = 'http://localhost:8081/api/bookings';
 
-function BookingPage() {
+function BookingPage({ currentUser, onOpenAdminDashboard }) {
   const [bookings, setBookings] = useState([]);
+  const [resources, setResources] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [toast, setToast] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const [myUserId, setMyUserId] = useState('');
-  const [viewMode, setViewMode] = useState('all');
   const [editingBooking, setEditingBooking] = useState(null);
   const [stats, setStats] = useState({
     total: 0, pending: 0, approved: 0, rejected: 0, cancelled: 0
   });
   const [form, setForm] = useState({
     resourceId: '', resourceName: '', date: '',
-    startTime: '', endTime: '', userId: '',
+    startTime: '', endTime: '', userId: currentUser?.id || '',
     purpose: '', attendees: ''
   });
 
-  useEffect(() => { fetchBookings(); }, []);
+  useEffect(() => {
+    if (currentUser?.id) {
+      fetchBookings();
+    }
+    fetchResources();
+  }, [currentUser]);
 
   useEffect(() => {
     applyFilters();
     calculateStats();
-  }, [bookings, filterStatus, searchTerm, viewMode, myUserId]);
+  }, [bookings, filterStatus, searchTerm]);
 
   const showToast = (message, type) => {
     setToast({ message, type });
@@ -40,7 +45,7 @@ function BookingPage() {
     setLoading(true);
     setLoadError('');
     try {
-      const res = await axios.get(API);
+      const res = await axios.get(`${API}/user/${currentUser.id}`);
       setBookings(res.data);
     } catch (err) {
       const message = err?.response?.data?.error || 'Error fetching bookings';
@@ -48,6 +53,15 @@ function BookingPage() {
       showToast(message, 'error');
     }
     setLoading(false);
+  };
+
+  const fetchResources = async () => {
+    try {
+      const res = await getResources();
+      setResources(res.data || []);
+    } catch (err) {
+      showToast('Failed to load resource names', 'error');
+    }
   };
 
   const calculateStats = () => {
@@ -62,9 +76,6 @@ function BookingPage() {
 
   const applyFilters = () => {
     let result = [...bookings];
-    if (viewMode === 'mine' && myUserId) {
-      result = result.filter(b => b.userId === myUserId);
-    }
     if (filterStatus !== 'ALL') {
       result = result.filter(b => b.status === filterStatus);
     }
@@ -82,8 +93,85 @@ function BookingPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleResourceChange = (e) => {
+    const selectedName = e.target.value;
+    const selectedResource = resources.find((r) => r.name === selectedName);
+
+    setForm({
+      ...form,
+      resourceName: selectedName,
+      resourceId: selectedResource?.id || '',
+    });
+  };
+
   const handleEditChange = (e) => {
     setEditingBooking({ ...editingBooking, [e.target.name]: e.target.value });
+  };
+
+  const handleEditResourceChange = (e) => {
+    const selectedName = e.target.value;
+    const selectedResource = resources.find((r) => r.name === selectedName);
+
+    setEditingBooking({
+      ...editingBooking,
+      resourceName: selectedName,
+      resourceId: selectedResource?.id || '',
+    });
+  };
+
+  const handleEditClick = (booking) => {
+    if (booking.status !== 'PENDING') {
+      showToast('Only PENDING bookings can be edited!', 'error');
+      return;
+    }
+    setEditingBooking({ ...booking });
+  };
+
+  const getResourceCapacity = (resourceId, resourceName) => {
+    const matched = resources.find((r) => r.id === resourceId)
+      || resources.find((r) => r.name === resourceName);
+    return matched?.capacity ?? null;
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (editingBooking.startTime >= editingBooking.endTime) {
+      showToast('End time must be after start time!', 'error');
+      return;
+    }
+
+    const editCapacity = getResourceCapacity(editingBooking.resourceId, editingBooking.resourceName);
+    if (editCapacity !== null && Number(editingBooking.attendees) > Number(editCapacity)) {
+      showToast(`Number of attendees cannot exceed resource capacity (${editCapacity}).`, 'error');
+      return;
+    }
+
+    try {
+      await axios.put(`${API}/${editingBooking.id}`, editingBooking);
+      setEditingBooking(null);
+      showToast('Booking updated successfully!', 'success');
+      await fetchBookings();
+    } catch (err) {
+      const apiError = err?.response?.data?.error;
+      if (err.response && err.response.status === 409) {
+        showToast('Conflict! This resource is already booked for this time.', 'error');
+      } else if (apiError) {
+        showToast(apiError, 'error');
+      } else {
+        showToast('Error updating booking.', 'error');
+      }
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    try {
+      await axios.delete(`${API}/${id}`);
+      showToast('Booking deleted successfully!', 'success');
+      await fetchBookings();
+    } catch (err) {
+      showToast('Cannot delete this booking.', 'error');
+    }
   };
 
   const validateForm = () => {
@@ -95,6 +183,13 @@ function BookingPage() {
       showToast('Date cannot be in the past!', 'error');
       return false;
     }
+
+    const selectedCapacity = getResourceCapacity(form.resourceId, form.resourceName);
+    if (selectedCapacity !== null && Number(form.attendees) > Number(selectedCapacity)) {
+      showToast(`Number of attendees cannot exceed resource capacity (${selectedCapacity}).`, 'error');
+      return false;
+    }
+
     return true;
   };
 
@@ -102,17 +197,23 @@ function BookingPage() {
     e.preventDefault();
     if (!validateForm()) return;
     try {
-      await axios.post(API, form);
+      await axios.post(API, {
+        ...form,
+        userId: currentUser.id,
+      });
       showToast('Booking created successfully!', 'success');
       setForm({
         resourceId: '', resourceName: '', date: '',
-        startTime: '', endTime: '', userId: '',
+        startTime: '', endTime: '', userId: currentUser.id,
         purpose: '', attendees: ''
       });
       fetchBookings();
     } catch (err) {
+      const apiError = err?.response?.data?.error;
       if (err.response && err.response.status === 409) {
         showToast('Conflict! This resource is already booked for this time.', 'error');
+      } else if (apiError) {
+        showToast(apiError, 'error');
       } else {
         showToast('Error creating booking.', 'error');
       }
@@ -138,6 +239,11 @@ function BookingPage() {
     }
   };
 
+  const selectedCapacity = getResourceCapacity(form.resourceId, form.resourceName);
+  const editSelectedCapacity = editingBooking
+    ? getResourceCapacity(editingBooking.resourceId, editingBooking.resourceName)
+    : null;
+
   return (
     <div className="booking-page">
 
@@ -148,8 +254,15 @@ function BookingPage() {
         </div>
       )}
 
-      <h1>📅 Booking Management</h1>
-      <p className="page-subtitle">Manage campus resource bookings and approvals</p>
+      <div className="booking-header">
+        <div>
+          <h1>📅 Booking Management</h1>
+          <p className="page-subtitle">Manage campus resource bookings and approvals</p>
+        </div>
+        <button className="btn-admin-dashboard" onClick={onOpenAdminDashboard}>
+          Booking Admin Dashboard
+        </button>
+      </div>
 
       {/* Stats Cards */}
       <div className="stats-cards">
@@ -180,16 +293,43 @@ function BookingPage() {
         <h2>➕ Make a Booking</h2>
         <form onSubmit={handleSubmit} className="booking-form">
           <div className="form-row">
-            <input name="resourceId" placeholder="Resource ID (e.g. room101)"
-              value={form.resourceId} onChange={handleChange} required />
-            <input name="resourceName" placeholder="Resource Name (e.g. Lecture Hall 101)"
-              value={form.resourceName} onChange={handleChange} required />
+            <select
+              name="resourceName"
+              value={form.resourceName}
+              onChange={handleResourceChange}
+              required
+            >
+              <option value="">Select Resource Name</option>
+              {resources.map((resource) => (
+                <option key={resource.id} value={resource.name}>
+                  {resource.name}
+                </option>
+              ))}
+            </select>
+            <input
+              name="resourceId"
+              placeholder="Resource ID"
+              value={form.resourceId}
+              readOnly
+              required
+            />
           </div>
           <div className="form-row">
-            <input name="userId" placeholder="Your User ID"
-              value={form.userId} onChange={handleChange} required />
-            <input name="date" type="date"
-              value={form.date} onChange={handleChange} required />
+            <div className="input-group">
+              <label>User ID (Auto-filled)</label>
+              <input
+                name="userId"
+                placeholder="Your User ID"
+                value={form.userId}
+                readOnly
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label>Date</label>
+              <input name="date" type="date"
+                value={form.date} onChange={handleChange} required />
+            </div>
           </div>
           <div className="form-row">
             <div className="input-group">
@@ -206,8 +346,15 @@ function BookingPage() {
           <div className="form-row">
             <input name="purpose" placeholder="Purpose of Booking"
               value={form.purpose} onChange={handleChange} required />
-            <input name="attendees" type="number" placeholder="Number of Attendees"
-              value={form.attendees} onChange={handleChange} required min="1" />
+            <div className="input-group">
+              <label>Number of Attendees</label>
+              <input name="attendees" type="number" placeholder="Number of Attendees"
+                value={form.attendees} onChange={handleChange} required min="1"
+                max={selectedCapacity ?? undefined} />
+              {selectedCapacity !== null && (
+                <small className="capacity-hint">Max capacity: {selectedCapacity}</small>
+              )}
+            </div>
           </div>
           <button type="submit" className="btn-submit">Submit Booking</button>
         </form>
@@ -235,28 +382,12 @@ function BookingPage() {
             <option value="REJECTED">Rejected</option>
             <option value="CANCELLED">Cancelled</option>
           </select>
-          <div className="view-toggle">
-            <button
-              className={viewMode === 'all' ? 'toggle-btn active' : 'toggle-btn'}
-              onClick={() => setViewMode('all')}>All Bookings</button>
-            <button
-              className={viewMode === 'mine' ? 'toggle-btn active' : 'toggle-btn'}
-              onClick={() => setViewMode('mine')}>My Bookings</button>
-          </div>
-          {viewMode === 'mine' && (
-            <input
-              className="userid-input"
-              placeholder="Enter your User ID"
-              value={myUserId}
-              onChange={(e) => setMyUserId(e.target.value)}
-            />
-          )}
         </div>
       </div>
 
       {/* Bookings Table */}
       <div className="bookings-table-container">
-        <h2>📋 {viewMode === 'mine' ? 'My Bookings' : 'All Bookings'}
+        <h2>📋 My Bookings
           <span className="booking-count">{filteredBookings.length} records</span>
         </h2>
 
@@ -289,6 +420,7 @@ function BookingPage() {
                 <th>Attendees</th>
                 <th>Status</th>
                 <th>Reason</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -308,12 +440,89 @@ function BookingPage() {
                   <td className="rejection-reason">
                     {booking.rejectionReason || '-'}
                   </td>
+                  <td>
+                    <div className="action-buttons">
+                      {booking.status === 'PENDING' && (
+                        <button className="btn-edit" onClick={() => handleEditClick(booking)}>Edit</button>
+                      )}
+                      <button className="btn-delete" onClick={() => handleDelete(booking.id)}>Delete</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
+
+      {editingBooking && (
+        <div className="modal-overlay" onClick={() => setEditingBooking(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>✏️ Edit Booking</h2>
+              <button className="modal-close" onClick={() => setEditingBooking(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleEditSubmit}>
+                <div className="edit-form-row">
+                  <label>Resource ID</label>
+                  <input name="resourceId" value={editingBooking.resourceId} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Resource Name</label>
+                  <select
+                    name="resourceName"
+                    value={editingBooking.resourceName}
+                    onChange={handleEditResourceChange}
+                    required
+                  >
+                    <option value="">Select Resource Name</option>
+                    {resources.map((resource) => (
+                      <option key={resource.id} value={resource.name}>
+                        {resource.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="edit-form-row">
+                  <label>Date</label>
+                  <input name="date" type="date" value={editingBooking.date} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Start Time</label>
+                  <input name="startTime" type="time" value={editingBooking.startTime} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>End Time</label>
+                  <input name="endTime" type="time" value={editingBooking.endTime} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Purpose</label>
+                  <input name="purpose" value={editingBooking.purpose} onChange={handleEditChange} required />
+                </div>
+                <div className="edit-form-row">
+                  <label>Attendees</label>
+                  <input
+                    name="attendees"
+                    type="number"
+                    value={editingBooking.attendees}
+                    onChange={handleEditChange}
+                    required
+                    min="1"
+                    max={editSelectedCapacity ?? undefined}
+                  />
+                  {editSelectedCapacity !== null && (
+                    <small className="capacity-hint">Max capacity: {editSelectedCapacity}</small>
+                  )}
+                </div>
+                <button type="submit" className="btn-submit" style={{ width: '100%', marginTop: '16px' }}>
+                  Update Booking
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

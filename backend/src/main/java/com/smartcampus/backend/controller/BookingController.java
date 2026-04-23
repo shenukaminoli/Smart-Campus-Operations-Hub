@@ -93,16 +93,7 @@ public class BookingController {
     // PUT - Update an existing booking
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBooking(@PathVariable String id,
-                                           @Valid @RequestBody Booking updatedBooking,
-                                           BindingResult result) {
-        if (result.hasErrors()) {
-            Map<String, String> errors = new HashMap<>();
-            result.getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
-            );
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-        }
-
+                                           @RequestBody Booking updatedBooking) {
         try {
             Booking updated = bookingService.updateBooking(id, updatedBooking);
             return ResponseEntity.ok(updated);
