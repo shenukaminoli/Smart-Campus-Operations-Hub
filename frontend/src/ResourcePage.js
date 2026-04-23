@@ -160,7 +160,20 @@ function ResourcePage({ onNavigate, onBook }) {
 
   // Calculate stats for the dashboard
   const activeCount = resources.filter((r) => r.status === "ACTIVE").length;
+  const outCount = resources.filter((r) => r.status === "OUT_OF_SERVICE").length;
   const totalCapacity = resources.reduce((sum, r) => sum + (Number(r.capacity) || 0), 0);
+
+  const clearAllFilters = () => {
+    setFilters({
+      type: "",
+      minCapacity: "",
+      location: "",
+      status: "",
+      sortBy: "name",
+      onlyAvailable: false,
+    });
+    setKeyword("");
+  };
 
   return (
     <div className="resource-page">
@@ -244,6 +257,8 @@ function ResourcePage({ onNavigate, onBook }) {
             <option value="name">Sort by Name</option>
             <option value="capacity">Sort by Capacity</option>
           </select>
+
+          <button type="button" className="btn-reset" onClick={clearAllFilters} style={{marginLeft: 'auto'}}>Clear All</button>
 
           <div className="amenity-toggles">
             <label className={`amenity-pill ${filters.hasAC ? 'active' : ''}`}>
@@ -337,7 +352,7 @@ function ResourcePage({ onNavigate, onBook }) {
             
             <button 
               className="btn-primary-action" 
-              onClick={onBook}
+              onClick={() => onBook(r)}
             >
               Book Now
             </button>
