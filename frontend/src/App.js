@@ -4,6 +4,7 @@ import BookingPage from './BookingPage';
 import DashboardPage from './DashboardPage';
 import CalendarPage from './CalendarPage';
 import IncidentPage from './IncidentPage';
+import TicketManagerPage from './TicketManagerPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -19,6 +20,7 @@ function App() {
           <a href="#dashboard" onClick={() => setCurrentPage('dashboard')}>Dashboard</a>
           <a href="#bookings" onClick={() => setCurrentPage('bookings')}>Bookings</a>
           <a href="#incidents" onClick={() => setCurrentPage('incidents')}>Incidents</a>
+          <a href="#ticket-manager" onClick={() => setCurrentPage('ticket-manager')}>Ticket Manager</a>
           <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
           <a href="#resources">Resources</a>
           <a href="#login" className="btn-login">Login</a>
@@ -122,6 +124,7 @@ function App() {
       {currentPage === 'dashboard' && <DashboardPage />}
       {currentPage === 'bookings' && <BookingPage />}
       {currentPage === 'incidents' && <IncidentPage />}
+      {currentPage === 'ticket-manager' && <TicketManagerPage />}
       {currentPage === 'calendar' && <CalendarPage />}
     </div>
   );

@@ -125,55 +125,6 @@ function IncidentPage() {
     }
   };
 
-  const assignTechnician = async (ticketId) => {
-    const technicianId = window.prompt('Enter technician ID');
-    if (!technicianId) return;
-
-    try {
-      await axios.put(`${API}/${ticketId}/assign`, { technicianId });
-      showToast('Technician assigned', 'success');
-      fetchTickets();
-    } catch (err) {
-      const message = err.response?.data?.error || 'Unable to assign technician';
-      showToast(message, 'error');
-    }
-  };
-
-  const updateTicketStatus = async (ticket) => {
-    const status = window.prompt(
-      `Enter next status (${ALLOWED_STATUSES.join(', ')})`,
-      ticket.status
-    );
-    if (!status) return;
-    const normalized = status.toUpperCase().trim();
-    if (!ALLOWED_STATUSES.includes(normalized)) {
-      showToast('Invalid status value', 'error');
-      return;
-    }
-
-    let resolutionNote = '';
-    let rejectionReason = '';
-    if (normalized === 'RESOLVED') {
-      resolutionNote = window.prompt('Enter resolution note') || '';
-    }
-    if (normalized === 'REJECTED') {
-      rejectionReason = window.prompt('Enter rejection reason') || '';
-    }
-
-    try {
-      await axios.put(`${API}/${ticket.id}/status`, {
-        status: normalized,
-        resolutionNote,
-        rejectionReason
-      });
-      showToast('Ticket status updated', 'success');
-      fetchTickets();
-    } catch (err) {
-      const message = err.response?.data?.error || 'Unable to update ticket status';
-      showToast(message, 'error');
-    }
-  };
-
   const statusClass = (status) => {
     switch (status) {
       case 'OPEN': return 'status-open';
@@ -195,7 +146,7 @@ function IncidentPage() {
 
       <h1>🛠 Incident Ticketing</h1>
       <p className="page-subtitle">
-        Create incident reports with attachments and manage technician progress updates
+        Create incident reports with attachments and track updates from the ticket manager
       </p>
 
       <div className="stats-cards">
@@ -301,7 +252,6 @@ function IncidentPage() {
                 <th>Status</th>
                 <th>Attachments</th>
                 <th>Notes</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -326,14 +276,6 @@ function IncidentPage() {
                   </td>
                   <td className="notes">
                     {ticket.resolutionNote || ticket.rejectionReason || '-'}
-                  </td>
-                  <td className="action-buttons">
-                    <button className="btn-assign" onClick={() => assignTechnician(ticket.id)}>
-                      Assign
-                    </button>
-                    <button className="btn-update" onClick={() => updateTicketStatus(ticket)}>
-                      Update
-                    </button>
                   </td>
                 </tr>
               ))}
