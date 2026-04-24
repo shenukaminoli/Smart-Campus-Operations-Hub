@@ -37,8 +37,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/bookings/**").permitAll()
                 .requestMatchers("/api/tickets/**").permitAll()
                 .requestMatchers("/api/technicians/**").permitAll()
+                .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/notifications/**").authenticated()
-                .requestMatchers("/api/activity-logs/**").hasAuthority("ROLE_ADMIN")
+                .requestMatchers("/api/activity-logs/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -52,6 +53,7 @@ public class SecurityConfig {
         config.addAllowedOriginPattern("*");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
+        config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
