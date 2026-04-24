@@ -29,6 +29,14 @@
   color: #003366;
 }
 
+.panel-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .tech-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(180px, 1fr));
@@ -125,6 +133,130 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.ticket-notes {
+  max-width: 220px;
+  color: #455a64;
+  font-size: 13px;
+}
+
+.comments-box {
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-item {
+  background: #f7f9fc;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.comment-meta {
+  font-size: 11px;
+  color: #003366;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  font-size: 13px;
+  color: #26323f;
+}
+
+.comment-actions {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+}
+
+.ticket-subject-btn {
+  border: none;
+  background: transparent;
+  color: #0057b8;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 700;
+  padding: 0;
+}
+
+.ticket-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ticket-modal {
+  width: min(700px, 92vw);
+  max-height: 80vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.ticket-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e3e8ef;
+}
+
+.ticket-modal-header h3 {
+  margin: 0;
+  color: #003366;
+}
+
+.ticket-modal-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #455a64;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ticket-modal-body {
+  padding: 16px;
+  color: #26323f;
+}
+
+.ticket-description-box {
+  margin-top: 10px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #f7f9fc;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.ticket-modal-attachments {
+  margin-top: 10px;
+}
+
+.ticket-modal-attachment-list {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ticket-modal-attachment-list a {
+  color: #0057b8;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.ticket-modal-attachment-list a:hover {
+  text-decoration: underline;
 }
 
 .toast {

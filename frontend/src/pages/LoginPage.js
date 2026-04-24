@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { loginUser, registerUser } from '../api/authApi';
 import '../styles/LoginPage.css';
 
+const MANAGER_USERNAME = 'ticket_manager';
+const MANAGER_PASSWORD = 'TicketManager@123';
+
 function LoginPage({ onLoginSuccess }) {
   const [tab, setTab] = useState('login');
   const [loading, setLoading] = useState(false);
@@ -22,6 +25,22 @@ function LoginPage({ onLoginSuccess }) {
     clearMessages();
     setLoading(true);
     try {
+      // Temporary manager-only local auth until backend role auth is wired.
+      const normalizedLoginId = (loginForm.email || '').trim().toLowerCase();
+      const managerAliases = ['ticket_manager', 'ticket manager'];
+      if (managerAliases.includes(normalizedLoginId) && loginForm.password === MANAGER_PASSWORD) {
+        const managerUser = {
+          id: 'manager-local',
+          fullName: 'Ticket Manager',
+          email: MANAGER_USERNAME,
+          role: 'MANAGER'
+        };
+        localStorage.setItem('token', 'manager-local-token');
+        localStorage.setItem('user', JSON.stringify(managerUser));
+        onLoginSuccess(managerUser);
+        return;
+      }
+
       const res = await loginUser(loginForm.email, loginForm.password);
       const { token, user } = res.data;
       localStorage.setItem('token', token);
@@ -29,7 +48,11 @@ function LoginPage({ onLoginSuccess }) {
       onLoginSuccess(user);
     } catch (err) {
       const data = err.response?.data;
-      setErrorMsg(data?.error || 'Login failed. Please try again.');
+      if (!err.response) {
+        setErrorMsg('Backend server is not reachable. Please start backend on port 8081.');
+      } else {
+        setErrorMsg(data?.error || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -88,8 +111,8 @@ function LoginPage({ onLoginSuccess }) {
           {tab === 'login' && (
             <form onSubmit={handleLoginSubmit}>
               <div className="form-group">
-                <label>Email</label>
-                <input type="email" placeholder="your@email.com" required
+                <label>Email / Username</label>
+                <input type="text" placeholder="your@email.com or username" required
                   value={loginForm.email}
                   onChange={e => setLoginForm({ ...loginForm, email: e.target.value })} />
               </div>

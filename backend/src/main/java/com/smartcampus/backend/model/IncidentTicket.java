@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Document(collection = "incidentTickets")
 public class IncidentTicket {
@@ -23,6 +24,9 @@ public class IncidentTicket {
 
     @NotBlank(message = "Category is required")
     private String category;
+
+    @NotBlank(message = "Subject is required")
+    private String subject;
 
     @NotBlank(message = "Description is required")
     @Size(min = 10, message = "Description should be at least 10 characters")
@@ -47,6 +51,7 @@ public class IncidentTicket {
     private String resolutionNote;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<TicketComment> comments = new ArrayList<>();
 
     @Valid
     @NotEmpty(message = "At least one attachment is required")
@@ -94,6 +99,71 @@ public class IncidentTicket {
         }
     }
 
+    public static class TicketComment {
+        private String id;
+        @NotBlank(message = "Comment author email is required")
+        private String authorEmail;
+        private String authorName;
+        @NotBlank(message = "Comment text is required")
+        private String content;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+
+        public TicketComment() {
+            this.id = UUID.randomUUID().toString();
+            this.createdAt = LocalDateTime.now();
+            this.updatedAt = LocalDateTime.now();
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getAuthorEmail() {
+            return authorEmail;
+        }
+
+        public void setAuthorEmail(String authorEmail) {
+            this.authorEmail = authorEmail;
+        }
+
+        public String getAuthorName() {
+            return authorName;
+        }
+
+        public void setAuthorName(String authorName) {
+            this.authorName = authorName;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
+        }
+
+        public LocalDateTime getCreatedAt() {
+            return createdAt;
+        }
+
+        public void setCreatedAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+        }
+
+        public LocalDateTime getUpdatedAt() {
+            return updatedAt;
+        }
+
+        public void setUpdatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+        }
+    }
+
     public String getId() {
         return id;
     }
@@ -124,6 +194,14 @@ public class IncidentTicket {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 
     public String getPriority() {
@@ -204,5 +282,13 @@ public class IncidentTicket {
 
     public void setAttachments(List<Attachment> attachments) {
         this.attachments = attachments;
+    }
+
+    public List<TicketComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<TicketComment> comments) {
+        this.comments = comments;
     }
 }

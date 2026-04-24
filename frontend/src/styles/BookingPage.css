@@ -11,6 +11,33 @@
   font-weight: 800;
 }
 
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-admin-dashboard {
+  background-color: #003366;
+  color: #FFB800;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,51,102,0.28);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-admin-dashboard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,51,102,0.35);
+}
+
 .page-subtitle {
   color: #666;
   font-size: 15px;
@@ -144,7 +171,26 @@
   color: #003366;
 }
 
+.capacity-hint {
+  font-size: 12px;
+  color: #455a64;
+  font-weight: 600;
+}
+
 .form-row input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1.5px solid #b0bec5;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.3s;
+  color: #1a1a2e;
+  background-color: #ffffff;
+  font-weight: 500;
+}
+
+.form-row select {
   flex: 1;
   padding: 12px 16px;
   border: 1.5px solid #b0bec5;
@@ -170,6 +216,7 @@
 }
 
 .form-row input:focus,
+.form-row select:focus,
 .input-group input:focus {
   border-color: #003366;
   background-color: #ffffff;
@@ -627,7 +674,24 @@
   transition: border 0.3s;
 }
 
+.edit-form-row select {
+  padding: 12px 16px;
+  border: 1.5px solid #b0bec5;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  color: #1a1a2e;
+  background-color: #ffffff;
+  font-weight: 500;
+  transition: border 0.3s;
+}
+
 .edit-form-row input:focus {
+  border-color: #003366;
+  box-shadow: 0 0 0 3px rgba(0,51,102,0.1);
+}
+
+.edit-form-row select:focus {
   border-color: #003366;
   box-shadow: 0 0 0 3px rgba(0,51,102,0.1);
 }

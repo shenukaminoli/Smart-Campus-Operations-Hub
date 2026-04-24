@@ -88,4 +88,67 @@ public class IncidentTicketController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTicket(@PathVariable String id) {
+        try {
+            incidentTicketService.deleteTicket(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<?> addComment(@PathVariable String id, @RequestBody Map<String, String> body) {
+        try {
+            return ResponseEntity.ok(incidentTicketService.addComment(
+                id,
+                body.get("requesterEmail"),
+                body.get("requesterName"),
+                body.get("content")
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{ticketId}/comments/{commentId}")
+    public ResponseEntity<?> updateComment(
+        @PathVariable String ticketId,
+        @PathVariable String commentId,
+        @RequestBody Map<String, String> body
+    ) {
+        try {
+            return ResponseEntity.ok(incidentTicketService.updateComment(
+                ticketId,
+                commentId,
+                body.get("requesterEmail"),
+                body.get("requesterRole"),
+                body.get("content")
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{ticketId}/comments/{commentId}")
+    public ResponseEntity<?> deleteComment(
+        @PathVariable String ticketId,
+        @PathVariable String commentId,
+        @RequestBody(required = false) Map<String, String> body
+    ) {
+        try {
+            String requesterEmail = body != null ? body.get("requesterEmail") : null;
+            String requesterRole = body != null ? body.get("requesterRole") : null;
+            return ResponseEntity.ok(incidentTicketService.deleteComment(
+                ticketId,
+                commentId,
+                requesterEmail,
+                requesterRole
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

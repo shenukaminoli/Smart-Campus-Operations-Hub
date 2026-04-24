@@ -1,6 +1,8 @@
 package com.smartcampus.backend.service;
 import com.smartcampus.backend.model.Booking;
+import com.smartcampus.backend.model.Resource;
 import com.smartcampus.backend.repository.BookingRepository;
+import com.smartcampus.backend.repository.ResourceRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -20,10 +22,15 @@ public class BookingService {
     private BookingRepository bookingRepository;
 
     @Autowired
+    private ResourceRepository resourceRepository;
+
+    @Autowired
     private MongoTemplate mongoTemplate;
 
     // Create a new booking (auto PENDING + conflict check)
     public Booking createBooking(Booking booking) {
+        validateAttendeeCapacity(booking);
+
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
             booking.getResourceId(),
             booking.getDate(),
@@ -132,12 +139,31 @@ public class BookingService {
             throw new RuntimeException("Only PENDING bookings can be updated");
         }
 
+        // Merge editable fields into existing document so partial payloads do not lose data.
+        existing.setResourceId(updatedBooking.getResourceId() != null ? updatedBooking.getResourceId() : existing.getResourceId());
+        existing.setResourceName(updatedBooking.getResourceName() != null ? updatedBooking.getResourceName() : existing.getResourceName());
+        existing.setDate(updatedBooking.getDate() != null ? updatedBooking.getDate() : existing.getDate());
+        existing.setStartTime(updatedBooking.getStartTime() != null ? updatedBooking.getStartTime() : existing.getStartTime());
+        existing.setEndTime(updatedBooking.getEndTime() != null ? updatedBooking.getEndTime() : existing.getEndTime());
+        existing.setPurpose(updatedBooking.getPurpose() != null ? updatedBooking.getPurpose() : existing.getPurpose());
+
+        if (updatedBooking.getAttendees() > 0) {
+            existing.setAttendees(updatedBooking.getAttendees());
+        }
+
+        // Keep user ownership unchanged during edit.
+        existing.setUserId(existing.getUserId());
+        existing.setStatus("PENDING");
+        existing.setRejectionReason(null);
+
+        validateAttendeeCapacity(existing);
+
         // Check conflicts excluding current booking
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
-            updatedBooking.getResourceId(),
-            updatedBooking.getDate(),
-            updatedBooking.getStartTime(),
-            updatedBooking.getEndTime()
+            existing.getResourceId(),
+            existing.getDate(),
+            existing.getStartTime(),
+            existing.getEndTime()
         ).stream()
             .filter(b -> !b.getId().equals(id))
             .collect(Collectors.toList());
@@ -146,9 +172,21 @@ public class BookingService {
             throw new RuntimeException("CONFLICT: This resource is already booked for the selected time.");
         }
 
-        updatedBooking.setId(id);
-        updatedBooking.setStatus("PENDING");
-        return bookingRepository.save(updatedBooking);
+        return bookingRepository.save(existing);
+    }
+
+    private void validateAttendeeCapacity(Booking booking) {
+        Resource resource = resourceRepository.findById(booking.getResourceId())
+            .orElseThrow(() -> new RuntimeException("Selected resource not found."));
+
+        if (booking.getAttendees() > resource.getCapacity()) {
+            throw new RuntimeException(
+                "ATTENDEES_EXCEEDED: Number of attendees cannot exceed resource capacity (" + resource.getCapacity() + ")."
+            );
+        }
+
+        // Keep booking resource name aligned with the source of truth.
+        booking.setResourceName(resource.getName());
     }
 
     // Delete booking

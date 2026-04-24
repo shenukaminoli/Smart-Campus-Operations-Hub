@@ -18,7 +18,6 @@ const COLORS = {
 function DashboardPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editingBooking, setEditingBooking] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -128,47 +127,6 @@ function DashboardPage() {
       await refreshBookings();
     } catch (err) {
       window.alert('Cannot cancel this booking.');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this booking?')) return;
-    try {
-      await axios.delete(`${API}/${id}`);
-      await refreshBookings();
-    } catch (err) {
-      window.alert('Cannot delete this booking.');
-    }
-  };
-
-  const handleEditClick = (booking) => {
-    if (booking.status !== 'PENDING') {
-      window.alert('Only PENDING bookings can be edited!');
-      return;
-    }
-    setEditingBooking({ ...booking });
-  };
-
-  const handleEditChange = (e) => {
-    setEditingBooking({ ...editingBooking, [e.target.name]: e.target.value });
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (editingBooking.startTime >= editingBooking.endTime) {
-      window.alert('End time must be after start time!');
-      return;
-    }
-    try {
-      await axios.put(`${API}/${editingBooking.id}`, editingBooking);
-      setEditingBooking(null);
-      await refreshBookings();
-    } catch (err) {
-      if (err.response && err.response.status === 409) {
-        window.alert('Conflict! This resource is already booked for this time.');
-      } else {
-        window.alert('Error updating booking.');
-      }
     }
   };
 
@@ -333,7 +291,7 @@ function DashboardPage() {
             </tr>
           </thead>
           <tbody>
-            {bookings.slice(0, 5).map(b => (
+            {bookings.map(b => (
               <tr key={b.id}>
                 <td>{b.resourceName}</td>
                 <td>{b.userId}</td>
@@ -351,13 +309,11 @@ function DashboardPage() {
                       <>
                         <button className="btn-approve" onClick={() => handleApprove(b.id)}>Approve</button>
                         <button className="btn-reject" onClick={() => handleReject(b.id)}>Reject</button>
-                        <button className="btn-edit" onClick={() => handleEditClick(b)}>Edit</button>
                       </>
                     )}
                     {b.status === 'APPROVED' && (
                       <button className="btn-cancel" onClick={() => handleCancel(b.id)}>Cancel</button>
                     )}
-                    <button className="btn-delete" onClick={() => handleDelete(b.id)}>Delete</button>
                   </div>
                 </td>
               </tr>
@@ -365,52 +321,6 @@ function DashboardPage() {
           </tbody>
         </table>
       </div>
-
-      {editingBooking && (
-        <div className="modal-overlay" onClick={() => setEditingBooking(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>✏️ Edit Booking</h2>
-              <button className="modal-close" onClick={() => setEditingBooking(null)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <form onSubmit={handleEditSubmit}>
-                <div className="edit-form-row">
-                  <label>Resource ID</label>
-                  <input name="resourceId" value={editingBooking.resourceId} onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Resource Name</label>
-                  <input name="resourceName" value={editingBooking.resourceName} onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Date</label>
-                  <input name="date" type="date" value={editingBooking.date} onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Start Time</label>
-                  <input name="startTime" type="time" value={editingBooking.startTime} onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>End Time</label>
-                  <input name="endTime" type="time" value={editingBooking.endTime} onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Purpose</label>
-                  <input name="purpose" value={editingBooking.purpose} onChange={handleEditChange} required />
-                </div>
-                <div className="edit-form-row">
-                  <label>Attendees</label>
-                  <input name="attendees" type="number" value={editingBooking.attendees} onChange={handleEditChange} required min="1" />
-                </div>
-                <button type="submit" className="btn-submit" style={{ width: '100%', marginTop: '16px' }}>
-                  Update Booking
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
