@@ -1,0 +1,91 @@
+.np-page { max-width: 860px; margin: 0 auto; padding: 2rem; position: relative; }
+
+.np-toast {
+  position: fixed; top: 1.5rem; right: 1.5rem;
+  padding: 0.9rem 1.5rem; border-radius: 8px; color: #fff;
+  font-weight: 600; font-size: 0.9rem; z-index: 2000;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18); animation: np-slide-in 0.25s ease; max-width: 340px;
+}
+@keyframes np-slide-in {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.np-toast-success { background: #2e7d32; }
+.np-toast-error   { background: #c62828; }
+
+.np-header {
+  background: #003366; color: #fff;
+  padding: 1.8rem 2rem; border-radius: 12px; margin-bottom: 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+.np-header h1 { font-size: 1.7rem; font-weight: 700; margin: 0 0 0.3rem 0; }
+.np-header p  { margin: 0; opacity: 0.78; font-size: 0.9rem; }
+.np-header-actions { display: flex; gap: 0.6rem; flex-shrink: 0; }
+
+.np-btn {
+  padding: 0.5rem 1.1rem; border-radius: 8px; border: none;
+  font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
+}
+.np-btn:hover { opacity: 0.85; }
+.np-btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.4); }
+.np-btn-danger { background: #fce4ec; color: #c62828; }
+
+.np-filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.np-filter-btn {
+  padding: 0.45rem 1.1rem; border-radius: 20px; border: 1.5px solid #ddd;
+  background: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: #555;
+  transition: all 0.15s; display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.np-filter-btn:hover { border-color: #003366; color: #003366; }
+.np-filter-active { background: #003366; border-color: #003366; color: #fff; }
+.np-filter-active:hover { color: #fff; }
+.np-filter-badge {
+  background: #FFB800; color: #003366; border-radius: 10px;
+  font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem;
+}
+
+.np-loading { display: flex; flex-direction: column; align-items: center; padding: 4rem; color: #888; gap: 1rem; }
+.np-spinner {
+  width: 40px; height: 40px; border: 4px solid #e0e0e0;
+  border-top-color: #003366; border-radius: 50%; animation: np-spin 0.7s linear infinite;
+}
+@keyframes np-spin { to { transform: rotate(360deg); } }
+
+.np-empty { text-align: center; padding: 4rem 2rem; color: #aaa; }
+.np-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.np-empty h3 { margin: 0 0 0.5rem; color: #666; font-size: 1.1rem; }
+.np-empty p  { margin: 0; font-size: 0.9rem; }
+
+.np-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.np-card {
+  background: #fff; border-radius: 10px; padding: 1rem 1.2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex; align-items: flex-start; gap: 1rem;
+  border-left: 4px solid transparent; transition: box-shadow 0.15s;
+}
+.np-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.np-unread { border-left-color: #003366; background: #f7f9ff; }
+
+.np-card-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+.np-card-body { flex: 1; min-width: 0; }
+.np-card-top {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.3rem;
+}
+.np-card-title { font-weight: 700; font-size: 0.92rem; color: #1a1a2e; }
+.np-card-time  { font-size: 0.75rem; color: #aaa; white-space: nowrap; flex-shrink: 0; }
+.np-card-msg   { font-size: 0.87rem; color: #555; margin: 0 0 0.4rem; line-height: 1.5; }
+.np-unread-pill {
+  display: inline-block; background: #e3f2fd; color: #1565c0;
+  font-size: 0.68rem; font-weight: 700; padding: 0.12rem 0.55rem; border-radius: 10px;
+}
+
+.np-card-actions { display: flex; flex-direction: column; gap: 0.4rem; flex-shrink: 0; }
+.np-action-btn {
+  background: none; border: 1px solid #e0e0e0; border-radius: 6px;
+  padding: 0.3rem 0.55rem; font-size: 0.82rem; cursor: pointer; transition: all 0.15s;
+}
+.np-btn-read  { color: #2e7d32; border-color: #c8e6c9; }
+.np-btn-read:hover  { background: #e8f5e9; }
+.np-btn-del   { color: #c62828; border-color: #ffcdd2; }
+.np-btn-del:hover   { background: #fce4ec; }

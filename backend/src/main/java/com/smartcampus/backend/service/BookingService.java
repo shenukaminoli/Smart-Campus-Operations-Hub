@@ -4,6 +4,8 @@ import com.smartcampus.backend.model.Resource;
 import com.smartcampus.backend.repository.BookingRepository;
 import com.smartcampus.backend.repository.ResourceRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 @Service
 public class BookingService {
 
+    private static final Logger log = LoggerFactory.getLogger(BookingService.class);
+
     @Autowired
     private BookingRepository bookingRepository;
 
@@ -26,6 +30,9 @@ public class BookingService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // Create a new booking (auto PENDING + conflict check)
     public Booking createBooking(Booking booking) {
@@ -43,7 +50,9 @@ public class BookingService {
         }
 
         booking.setStatus("PENDING");
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        try { notificationService.notifyBookingCreated(saved); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        return saved;
     }
 
     // Get all bookings (Admin)
@@ -100,7 +109,9 @@ public class BookingService {
         }
 
         booking.setStatus("APPROVED");
-        return bookingRepository.save(booking);
+        Booking savedApproved = bookingRepository.save(booking);
+        try { notificationService.notifyBookingApproved(savedApproved); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        return savedApproved;
     }
 
     // Reject booking (Admin)
@@ -114,7 +125,9 @@ public class BookingService {
 
         booking.setStatus("REJECTED");
         booking.setRejectionReason(reason);
-        return bookingRepository.save(booking);
+        Booking savedRejected = bookingRepository.save(booking);
+        try { notificationService.notifyBookingRejected(savedRejected); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        return savedRejected;
     }
 
     // Cancel booking (User)
@@ -127,7 +140,9 @@ public class BookingService {
         }
 
         booking.setStatus("CANCELLED");
-        return bookingRepository.save(booking);
+        Booking savedCancelled = bookingRepository.save(booking);
+        try { notificationService.notifyBookingCancelled(savedCancelled); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        return savedCancelled;
     }
 
     // Update booking (only PENDING)

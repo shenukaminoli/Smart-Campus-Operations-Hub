@@ -9,6 +9,8 @@ import TechnicianManagementPage from './pages/TechnicianManagementPage';
 import ResourcePage from './pages/ResourcePage';
 import ResourceManagementPage from './pages/ResourceManagementPage';
 import LoginPage from './pages/LoginPage';
+import NotificationsPage from './pages/NotificationsPage';
+import NotificationBell from './components/NotificationBell';
 import { logoutUser } from './api/authApi';
 
 const ROLE_COLORS = {
@@ -139,6 +141,7 @@ function App() {
           <a href="#resources" onClick={() => setCurrentPage('resources')}>Resources</a>
         </div>
         <div className="nav-user">
+          <NotificationBell currentUser={currentUser} onViewAll={() => setCurrentPage('notifications')} />
           <span className="nav-username">{currentUser.fullName}</span>
           <span className="nav-role-badge" style={roleStyle}>{currentUser.role}</span>
           <button className="btn-logout" onClick={handleLogout}>Logout</button>
@@ -414,6 +417,7 @@ function App() {
         onBook={handleStartBooking}
       />}
       {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
+      {currentPage === 'notifications' && <NotificationsPage currentUser={currentUser} />}
     </div>
   );
 }
