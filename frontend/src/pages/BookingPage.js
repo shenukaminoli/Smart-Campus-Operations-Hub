@@ -319,9 +319,11 @@ function BookingPage({ currentUser, onOpenAdminDashboard, prefill }) {
           <h1>📅 Booking Management</h1>
           <p className="page-subtitle">Manage campus resource bookings and approvals</p>
         </div>
-        <button className="btn-admin-dashboard" onClick={onOpenAdminDashboard}>
-          Booking Admin Dashboard
-        </button>
+        {currentUser?.role === 'ADMIN' && (
+          <button className="btn-admin-dashboard" onClick={onOpenAdminDashboard}>
+            Booking Admin Dashboard
+          </button>
+        )}
       </div>
 
       {/* Stats Cards */}

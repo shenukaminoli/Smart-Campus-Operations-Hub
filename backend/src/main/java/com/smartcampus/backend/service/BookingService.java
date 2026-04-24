@@ -34,6 +34,9 @@ public class BookingService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private ActivityLogService activityLogService;
+
     // Create a new booking (auto PENDING + conflict check)
     public Booking createBooking(Booking booking) {
         validateAttendeeCapacity(booking);
@@ -52,6 +55,7 @@ public class BookingService {
         booking.setStatus("PENDING");
         Booking saved = bookingRepository.save(booking);
         try { notificationService.notifyBookingCreated(saved); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        try { activityLogService.logByUserId(saved.getUserId(), "BOOKING_CREATED", "Created booking for " + saved.getResourceName() + " on " + saved.getDate(), "BOOKING", saved.getId()); } catch (Exception e) { log.error("Activity log error: {}", e.getMessage()); }
         return saved;
     }
 
@@ -111,6 +115,7 @@ public class BookingService {
         booking.setStatus("APPROVED");
         Booking savedApproved = bookingRepository.save(booking);
         try { notificationService.notifyBookingApproved(savedApproved); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        try { activityLogService.logByUserId(savedApproved.getUserId(), "BOOKING_APPROVED", "Approved booking for " + savedApproved.getResourceName() + " on " + savedApproved.getDate(), "BOOKING", savedApproved.getId()); } catch (Exception e) { log.error("Activity log error: {}", e.getMessage()); }
         return savedApproved;
     }
 
@@ -127,6 +132,7 @@ public class BookingService {
         booking.setRejectionReason(reason);
         Booking savedRejected = bookingRepository.save(booking);
         try { notificationService.notifyBookingRejected(savedRejected); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        try { activityLogService.logByUserId(savedRejected.getUserId(), "BOOKING_REJECTED", "Rejected booking for " + savedRejected.getResourceName() + " on " + savedRejected.getDate(), "BOOKING", savedRejected.getId()); } catch (Exception e) { log.error("Activity log error: {}", e.getMessage()); }
         return savedRejected;
     }
 
@@ -142,6 +148,7 @@ public class BookingService {
         booking.setStatus("CANCELLED");
         Booking savedCancelled = bookingRepository.save(booking);
         try { notificationService.notifyBookingCancelled(savedCancelled); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        try { activityLogService.logByUserId(savedCancelled.getUserId(), "BOOKING_CANCELLED", "Cancelled booking for " + savedCancelled.getResourceName() + " on " + savedCancelled.getDate(), "BOOKING", savedCancelled.getId()); } catch (Exception e) { log.error("Activity log error: {}", e.getMessage()); }
         return savedCancelled;
     }
 

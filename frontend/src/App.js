@@ -10,6 +10,7 @@ import ResourcePage from './pages/ResourcePage';
 import ResourceManagementPage from './pages/ResourceManagementPage';
 import LoginPage from './pages/LoginPage';
 import NotificationsPage from './pages/NotificationsPage';
+import UserActivityPage from './pages/UserActivityPage';
 import NotificationBell from './components/NotificationBell';
 import { logoutUser } from './api/authApi';
 
@@ -139,6 +140,9 @@ function App() {
           )}
           <a href="#calendar" onClick={() => setCurrentPage('calendar')}>Calendar</a>
           <a href="#resources" onClick={() => setCurrentPage('resources')}>Resources</a>
+          {currentUser?.role === 'ADMIN' && (
+            <a href="#activity" onClick={() => setCurrentPage('activity')}>Activity</a>
+          )}
         </div>
         <div className="nav-user">
           <NotificationBell currentUser={currentUser} onViewAll={() => setCurrentPage('notifications')} />
@@ -415,9 +419,11 @@ function App() {
       {currentPage === 'resources' && <ResourcePage
         onNavigate={() => setCurrentPage('resource-management')}
         onBook={handleStartBooking}
+        currentUser={currentUser}
       />}
       {currentPage === 'resource-management' && <ResourceManagementPage onNavigate={() => setCurrentPage('resources')} />}
       {currentPage === 'notifications' && <NotificationsPage currentUser={currentUser} />}
+      {currentPage === 'activity' && currentUser?.role === 'ADMIN' && <UserActivityPage currentUser={currentUser} />}
     </div>
   );
 }

@@ -27,6 +27,8 @@ public class IncidentTicketService {
     private TechnicianRepository technicianRepository;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private ActivityLogService activityLogService;
 
     public IncidentTicket createTicket(IncidentTicket ticket) {
         ticket.setId(null);
@@ -35,7 +37,9 @@ public class IncidentTicketService {
         ticket.setResolutionNote(null);
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
-        return incidentTicketRepository.save(ticket);
+        IncidentTicket created = incidentTicketRepository.save(ticket);
+        try { activityLogService.logByUserEmail(created.getReportedBy(), "INCIDENT_CREATED", "Created incident ticket: \"" + created.getSubject() + "\"", "INCIDENT", created.getId()); } catch (Exception e) { log.error("Activity log error: {}", e.getMessage()); }
+        return created;
     }
 
     public List<IncidentTicket> getAllTickets() {
@@ -128,6 +132,7 @@ public class IncidentTicketService {
             refreshTechnicianAvailability(ticket.getAssignedTechnicianId());
         }
         try { notificationService.notifyIncidentStatusChanged(saved, current, status); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        try { activityLogService.logByUserEmail(saved.getReportedBy(), "INCIDENT_STATUS_CHANGED", "Changed ticket \"" + saved.getSubject() + "\" from " + current + " to " + status, "INCIDENT", saved.getId()); } catch (Exception e) { log.error("Activity log error: {}", e.getMessage()); }
         return saved;
     }
 

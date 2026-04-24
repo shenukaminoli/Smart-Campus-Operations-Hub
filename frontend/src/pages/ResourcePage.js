@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { createResource, deleteResource, getResources, updateResource } from "../api/resourceApi";
 import "../styles/ResourcePage.css";
 
-function ResourcePage({ onNavigate, onBook }) {
+function ResourcePage({ onNavigate, onBook, currentUser }) {
   const [resources, setResources] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -201,9 +201,11 @@ function ResourcePage({ onNavigate, onBook }) {
           <h2>Campus Resource Catalogue</h2>
           <p>Browse available lecture halls, labs, and equipment slots.</p>
         </div>
-        <button className="btn-admin-toggle" onClick={onNavigate}>
-          Manage Resources (Admin)
-        </button>
+        {currentUser?.role === 'ADMIN' && (
+          <button className="btn-admin-toggle" onClick={onNavigate}>
+            Manage Resources (Admin)
+          </button>
+        )}
       </section>
 
       <section className="resource-stats">

@@ -2,6 +2,7 @@ package com.smartcampus.backend.controller;
 
 import com.smartcampus.backend.model.User;
 import com.smartcampus.backend.security.JwtUtil;
+import com.smartcampus.backend.service.ActivityLogService;
 import com.smartcampus.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private ActivityLogService activityLogService;
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user, BindingResult result) {
         if (result.hasErrors()) {
@@ -35,6 +39,7 @@ public class AuthController {
         try {
             User created = userService.createUser(user);
             created.setPassword(null);
+            try { activityLogService.logActivity(created.getId(), created.getEmail(), created.getFullName(), "USER_REGISTERED", "New user registered: " + created.getEmail(), "USER", created.getId()); } catch (Exception ignored) {}
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
@@ -58,6 +63,7 @@ public class AuthController {
         }
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
         user.setPassword(null);
+        try { activityLogService.logActivity(user.getId(), user.getEmail(), user.getFullName(), "LOGIN", "User logged in: " + user.getEmail(), "USER", user.getId()); } catch (Exception ignored) {}
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("user", user);
