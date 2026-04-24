@@ -191,3 +191,31 @@
 .role-badge.STAFF    { background: #e3f2fd; color: #1565c0; }
 .role-badge.STUDENT  { background: #e8f5e9; color: #2e7d32; }
 .role-badge.TECHNICIAN { background: #fff3e0; color: #e65100; }
+
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0 16px;
+  gap: 12px;
+}
+
+.oauth-divider::before,
+.oauth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #ddd;
+}
+
+.oauth-divider span {
+  font-size: 13px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.google-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+

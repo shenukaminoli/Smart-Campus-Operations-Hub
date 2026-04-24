@@ -26,4 +26,7 @@ export const logoutUser = () => {
   localStorage.removeItem('user');
 };
 
+export const googleLogin = (credential) =>
+  api.post('/auth/google', { credential });
+
 export default api;

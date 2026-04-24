@@ -96,4 +96,37 @@ public class UserService {
         }
         return Optional.empty();
     }
+
+    public User findOrCreateOAuthUser(String oauthProvider, String oauthId,
+                                       String email, String fullName, String profileImageUrl) {
+        // 1. Check if we already have this OAuth user
+        Optional<User> existingOAuth = userRepository.findByOauthProviderAndOauthId(oauthProvider, oauthId);
+        if (existingOAuth.isPresent()) {
+            return existingOAuth.get();
+        }
+
+        // 2. Check if a user with this email already exists (registered normally)
+        Optional<User> existingEmail = userRepository.findByEmail(email);
+        if (existingEmail.isPresent()) {
+            User user = existingEmail.get();
+            user.setOauthProvider(oauthProvider);
+            user.setOauthId(oauthId);
+            if (profileImageUrl != null) {
+                user.setProfileImageUrl(profileImageUrl);
+            }
+            return userRepository.save(user);
+        }
+
+        // 3. Create a brand new OAuth user
+        User newUser = new User();
+        newUser.setFullName(fullName);
+        newUser.setEmail(email);
+        newUser.setPassword(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
+        newUser.setRole(Role.STUDENT);
+        newUser.setActive(true);
+        newUser.setOauthProvider(oauthProvider);
+        newUser.setOauthId(oauthId);
+        newUser.setProfileImageUrl(profileImageUrl);
+        return userRepository.save(newUser);
+    }
 }
