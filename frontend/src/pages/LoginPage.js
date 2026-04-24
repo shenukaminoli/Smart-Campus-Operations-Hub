@@ -40,9 +40,11 @@ function LoginPage({ onLoginSuccess }) {
   }, [onLoginSuccess]);
 
   useEffect(() => {
-    // Load Google Sign-In script
+    // Load Google Sign-In script once
     if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') return;
+    if (document.getElementById('google-gsi-script')) return;
     const script = document.createElement('script');
+    script.id = 'google-gsi-script';
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
@@ -52,17 +54,27 @@ function LoginPage({ onLoginSuccess }) {
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
         });
-        window.google.accounts.id.renderButton(
-          document.getElementById('google-signin-btn'),
-          { theme: 'outline', size: 'large', width: '100%', text: 'signin_with' }
-        );
       }
     };
     document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
   }, [handleGoogleResponse]);
+
+  // Re-render the Google button whenever the tab changes
+  useEffect(() => {
+    if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') return;
+    const renderBtn = () => {
+      const el = document.getElementById('google-signin-btn');
+      if (el && window.google) {
+        el.innerHTML = '';
+        window.google.accounts.id.renderButton(el, {
+          theme: 'outline', size: 'large', width: '100%', text: 'signin_with'
+        });
+      }
+    };
+    // Small delay to ensure the DOM element exists after tab switch
+    const timer = setTimeout(renderBtn, 100);
+    return () => clearTimeout(timer);
+  }, [tab]);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
