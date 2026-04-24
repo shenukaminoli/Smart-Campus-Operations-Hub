@@ -1,20 +1,63 @@
 .dashboard-page {
   padding: 40px 60px;
-  background-color: #f4f7fc;
+  background:
+    radial-gradient(circle at 10% -10%, rgba(0, 80, 158, 0.1), transparent 34%),
+    radial-gradient(circle at 92% 10%, rgba(255, 184, 0, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(244, 247, 252, 0.9)),
+    #f4f7fc;
   min-height: 100vh;
+}
+
+.dashboard-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.97), rgba(0, 80, 158, 0.93));
+  border-radius: 18px;
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 30px rgba(0, 51, 102, 0.2);
+}
+
+.dashboard-head-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.dash-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #f7fbff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.dash-updated {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .dashboard-page h1 {
   font-size: 32px;
-  color: #003366;
+  color: #ffffff;
   margin-bottom: 8px;
   font-weight: 800;
 }
 
 .dashboard-page .page-subtitle {
-  color: #666;
+  color: rgba(255, 255, 255, 0.86);
   font-size: 15px;
-  margin-bottom: 32px;
+  margin-bottom: 0;
 }
 
 /* LOADING */
@@ -52,20 +95,42 @@
 .dash-card {
   flex: 1;
   min-width: 150px;
-  background: white;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 252, 0.96));
   border-radius: 14px;
   padding: 20px 24px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 4px 15px rgba(0,51,102,0.08);
+  box-shadow: 0 10px 24px rgba(0,51,102,0.09);
   border-left: 5px solid #003366;
-  transition: transform 0.2s;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  animation: dashboardFadeUp 0.42s ease both;
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-card::after {
+  content: "";
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 90px;
+  height: 90px;
+  background: radial-gradient(circle, rgba(0, 80, 158, 0.12), transparent 70%);
+  pointer-events: none;
 }
 
 .dash-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(0, 51, 102, 0.16);
 }
+
+.dashboard-stats .dash-card:nth-child(1) { animation-delay: 0.03s; }
+.dashboard-stats .dash-card:nth-child(2) { animation-delay: 0.06s; }
+.dashboard-stats .dash-card:nth-child(3) { animation-delay: 0.09s; }
+.dashboard-stats .dash-card:nth-child(4) { animation-delay: 0.12s; }
+.dashboard-stats .dash-card:nth-child(5) { animation-delay: 0.15s; }
+.dashboard-stats .dash-card:nth-child(6) { animation-delay: 0.18s; }
 
 .dash-icon {
   font-size: 32px;
@@ -119,16 +184,23 @@
 }
 
 .chart-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(3px);
   border-radius: 16px;
   padding: 28px 32px;
-  box-shadow: 0 4px 20px rgba(0,51,102,0.08);
+  box-shadow: 0 12px 28px rgba(0,51,102,0.1);
   border-top: 4px solid #003366;
   flex: 1;
   min-width: 300px;
   margin-bottom: 24px;
   box-sizing: border-box;
+  animation: dashboardFadeUp 0.45s ease both;
+  border: 1px solid rgba(0, 51, 102, 0.08);
 }
+
+.charts-row .chart-card:nth-child(1) { animation-delay: 0.08s; }
+.charts-row .chart-card:nth-child(2) { animation-delay: 0.12s; }
+.chart-card.full-width { animation-delay: 0.15s; }
 
 .chart-card.full-width {
   width: 100%;
@@ -177,22 +249,22 @@
 }
 
 .btn-export {
-  background-color: #FFB800;
-  color: #003366;
+  background: linear-gradient(135deg, #ffbf1f, #f6a600);
+  color: #10243c;
   border: none;
   padding: 10px 18px;
-  border-radius: 999px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(255, 184, 0, 0.35);
+  box-shadow: 0 8px 18px rgba(255, 184, 0, 0.36);
   transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
 .btn-export:hover {
-  transform: translateY(-1px);
-  background-color: #e6a500;
-  box-shadow: 0 6px 18px rgba(255, 184, 0, 0.45);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #ffca39, #f7af13);
+  box-shadow: 0 12px 22px rgba(255, 184, 0, 0.46);
 }
 
 .no-data {
@@ -207,6 +279,8 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .recent-table th,
@@ -215,8 +289,8 @@
 }
 
 .recent-table th {
-  background-color: #003366;
-  color: #FFB800;
+  background: linear-gradient(135deg, #003366, #004989);
+  color: #ffcc45;
   padding: 12px 16px;
   text-align: left;
   font-weight: 600;
@@ -230,10 +304,19 @@
   border-bottom: 1px solid #eef1f7;
   color: #1a1a2e;
   font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
 .recent-table tr:hover {
-  background-color: #f4f7fc;
+  background-color: #eef4fc;
+}
+
+.recent-table tbody tr:nth-child(even) {
+  background-color: rgba(244, 247, 252, 0.65);
+}
+
+.recent-table tbody tr:nth-child(even):hover {
+  background-color: #e9f1fb;
 }
 
 .dashboard-action-buttons {
@@ -245,10 +328,59 @@
 .dashboard-action-buttons .btn-cancel,
 .dashboard-action-buttons .btn-reject,
 .dashboard-action-buttons .btn-approve {
-  padding: 6px 12px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.dashboard-action-buttons .btn-approve {
+  background: #0f7b45;
+  color: #ffffff;
+}
+
+.dashboard-action-buttons .btn-reject {
+  background: #c62828;
+  color: #ffffff;
+}
+
+.dashboard-action-buttons .btn-cancel {
+  background: #ffb800;
+  color: #1e3550;
+}
+
+.dashboard-action-buttons .btn-delete,
+.dashboard-action-buttons .btn-edit {
+  background: #4b6077;
+  color: #ffffff;
+}
+
+.dashboard-action-buttons button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.dashboard-action-buttons button:active {
+  transform: translateY(0);
 }
 
 @media (max-width: 768px) {
+  .dashboard-page {
+    padding: 24px 18px;
+  }
+
+  .dashboard-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-head-meta {
+    align-items: flex-start;
+  }
+
   .recent-bookings-header {
     flex-direction: column;
   }
@@ -264,10 +396,11 @@
 
 /* STATUS BADGES */
 .status-badge {
-  padding: 4px 12px;
+  padding: 5px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .status-pending {
@@ -292,4 +425,15 @@
   background-color: #eceff1;
   color: #455a64;
   border: 1px solid #90a4ae;
+}
+
+@keyframes dashboardFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

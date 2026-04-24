@@ -18,6 +18,7 @@ const COLORS = {
 function DashboardPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -28,6 +29,7 @@ function DashboardPage() {
     try {
       const res = await axios.get(API);
       setBookings(res.data);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching bookings', err);
     }
@@ -141,8 +143,18 @@ function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      <h1>📊 Dashboard</h1>
-      <p className="page-subtitle">Overview of all campus resource bookings</p>
+      <div className="dashboard-head">
+        <div>
+          <h1>📊 Dashboard</h1>
+          <p className="page-subtitle">Overview of all campus resource bookings</p>
+        </div>
+        <div className="dashboard-head-meta">
+          <span className="dash-chip">Live Analytics</span>
+          <span className="dash-updated">
+            Updated: {lastUpdated ? lastUpdated.toLocaleTimeString() : '--:--:--'}
+          </span>
+        </div>
+      </div>
 
       {/* Summary Cards */}
       <div className="dashboard-stats">

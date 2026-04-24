@@ -5,7 +5,7 @@ import '../styles/BookingPage.css';
 
 const API = 'http://localhost:8081/api/bookings';
 
-function BookingPage({ currentUser, onOpenAdminDashboard, prefill }) {
+function BookingPage({ currentUser, onOpenAdminDashboard = () => {}, prefill }) {
   const [bookings, setBookings] = useState([]);
   const [resources, setResources] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
@@ -319,8 +319,13 @@ function BookingPage({ currentUser, onOpenAdminDashboard, prefill }) {
           <h1>📅 Booking Management</h1>
           <p className="page-subtitle">Manage campus resource bookings and approvals</p>
         </div>
-        <button className="btn-admin-dashboard" onClick={onOpenAdminDashboard}>
-          Booking Admin Dashboard
+        <button
+          className="btn-admin-dashboard"
+          onClick={onOpenAdminDashboard}
+          aria-label="Open Booking Admin Dashboard"
+        >
+          <span className="btn-admin-dashboard-icon">◆</span>
+          <span className="btn-admin-dashboard-text">Booking Admin Dashboard</span>
         </button>
       </div>
 
