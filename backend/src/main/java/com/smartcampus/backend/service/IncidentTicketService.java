@@ -3,6 +3,8 @@ import com.smartcampus.backend.model.IncidentTicket;
 import com.smartcampus.backend.repository.IncidentTicketRepository;
 import com.smartcampus.backend.repository.TechnicianRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.util.Set;
 @Service
 public class IncidentTicketService {
 
+    private static final Logger log = LoggerFactory.getLogger(IncidentTicketService.class);
     private static final Set<String> TERMINAL_STATUSES = Set.of("CLOSED", "REJECTED");
     private static final Set<String> BUSY_STATUSES = Set.of("OPEN", "IN_PROGRESS");
     private static final Set<String> STAFF_ROLES = Set.of("ADMIN", "STAFF", "MANAGER", "TECHNICIAN");
@@ -22,6 +25,10 @@ public class IncidentTicketService {
     private IncidentTicketRepository incidentTicketRepository;
     @Autowired
     private TechnicianRepository technicianRepository;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private ActivityLogService activityLogService;
 
     public IncidentTicket createTicket(IncidentTicket ticket) {
         ticket.setId(null);
@@ -30,7 +37,9 @@ public class IncidentTicketService {
         ticket.setResolutionNote(null);
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
-        return incidentTicketRepository.save(ticket);
+        IncidentTicket created = incidentTicketRepository.save(ticket);
+        try { activityLogService.logByUserEmail(created.getReportedBy(), "INCIDENT_CREATED", "Created incident ticket: \"" + created.getSubject() + "\"", "INCIDENT", created.getId()); } catch (Exception e) { log.error("Activity log error: {}", e.getMessage()); }
+        return created;
     }
 
     public List<IncidentTicket> getAllTickets() {
@@ -70,6 +79,7 @@ public class IncidentTicketService {
         if (previousTechnicianId != null && !previousTechnicianId.isBlank() && !previousTechnicianId.equals(technicianId)) {
             refreshTechnicianAvailability(previousTechnicianId);
         }
+        try { notificationService.notifyIncidentAssigned(saved, technicianId); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
         return saved;
     }
 
@@ -121,6 +131,8 @@ public class IncidentTicketService {
         if (ticket.getAssignedTechnicianId() != null && !ticket.getAssignedTechnicianId().isBlank()) {
             refreshTechnicianAvailability(ticket.getAssignedTechnicianId());
         }
+        try { notificationService.notifyIncidentStatusChanged(saved, current, status); } catch (Exception e) { log.error("Notification error: {}", e.getMessage()); }
+        try { activityLogService.logByUserEmail(saved.getReportedBy(), "INCIDENT_STATUS_CHANGED", "Changed ticket \"" + saved.getSubject() + "\" from " + current + " to " + status, "INCIDENT", saved.getId()); } catch (Exception e) { log.error("Activity log error: {}", e.getMessage()); }
         return saved;
     }
 
