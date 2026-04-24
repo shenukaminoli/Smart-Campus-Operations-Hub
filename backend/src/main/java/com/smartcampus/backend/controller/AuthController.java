@@ -1,16 +1,22 @@
 package com.smartcampus.backend.controller;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import com.smartcampus.backend.model.User;
 import com.smartcampus.backend.security.JwtUtil;
 import com.smartcampus.backend.service.ActivityLogService;
 import com.smartcampus.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +34,9 @@ public class AuthController {
 
     @Autowired
     private ActivityLogService activityLogService;
+
+    @Value("${google.client.id}")
+    private String googleClientId;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user, BindingResult result) {
@@ -70,6 +79,57 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body) {
+        String idTokenString = body.get("credential");
+        if (idTokenString == null || idTokenString.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Google credential is required"));
+        }
+
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(), GsonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid Google token"));
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String googleId = payload.getSubject();
+            String email = payload.getEmail();
+            String fullName = (String) payload.get("name");
+            String pictureUrl = (String) payload.get("picture");
+
+            User user = userService.findOrCreateOAuthUser("GOOGLE", googleId, email, fullName, pictureUrl);
+
+            if (!user.isActive()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Account is deactivated"));
+            }
+
+            String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
+            user.setPassword(null);
+
+            try {
+                activityLogService.logActivity(user.getId(), user.getEmail(), user.getFullName(),
+                        "LOGIN", "User logged in via Google: " + user.getEmail(), "USER", user.getId());
+            } catch (Exception ignored) {}
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("user", user);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Google authentication failed: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -89,3 +149,4 @@ public class AuthController {
         return ResponseEntity.ok(user);
     }
 }
+

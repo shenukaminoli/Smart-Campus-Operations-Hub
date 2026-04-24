@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { loginUser, registerUser } from '../api/authApi';
+import React, { useState, useEffect, useCallback } from 'react';
+import { loginUser, registerUser, googleLogin } from '../api/authApi';
 import '../styles/LoginPage.css';
 
 const MANAGER_USERNAME = 'ticket_manager';
 const MANAGER_PASSWORD = 'TicketManager@123';
+
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID_HERE';
 
 function LoginPage({ onLoginSuccess }) {
   const [tab, setTab] = useState('login');
@@ -19,6 +21,48 @@ function LoginPage({ onLoginSuccess }) {
   });
 
   const clearMessages = () => { setErrorMsg(''); setSuccessMsg(''); setFieldErrors({}); };
+
+  const handleGoogleResponse = useCallback(async (response) => {
+    clearMessages();
+    setLoading(true);
+    try {
+      const res = await googleLogin(response.credential);
+      const { token, user } = res.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      onLoginSuccess(user);
+    } catch (err) {
+      const data = err.response?.data;
+      setErrorMsg(data?.error || 'Google login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [onLoginSuccess]);
+
+  useEffect(() => {
+    // Load Google Sign-In script
+    if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') return;
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+        });
+        window.google.accounts.id.renderButton(
+          document.getElementById('google-signin-btn'),
+          { theme: 'outline', size: 'large', width: '100%', text: 'signin_with' }
+        );
+      }
+    };
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [handleGoogleResponse]);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -125,6 +169,13 @@ function LoginPage({ onLoginSuccess }) {
               <button className="btn-submit" type="submit" disabled={loading}>
                 {loading ? 'Logging in...' : 'Login'}
               </button>
+
+              {/* Google Sign-In */}
+              <div className="oauth-divider">
+                <span>or continue with</span>
+              </div>
+              <div id="google-signin-btn" className="google-btn-wrapper"></div>
+
               <div className="login-footer">
                 Don't have an account?{' '}
                 <a onClick={() => { setTab('register'); clearMessages(); }}>Register here</a>
@@ -185,6 +236,13 @@ function LoginPage({ onLoginSuccess }) {
               <button className="btn-submit" type="submit" disabled={loading}>
                 {loading ? 'Creating account...' : 'Create Account'}
               </button>
+
+              {/* Google Sign-In for register too */}
+              <div className="oauth-divider">
+                <span>or sign up with</span>
+              </div>
+              <div id="google-signin-btn" className="google-btn-wrapper"></div>
+
               <div className="login-footer">
                 Already have an account?{' '}
                 <a onClick={() => { setTab('login'); clearMessages(); }}>Login here</a>
